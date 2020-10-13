@@ -1,0 +1,4 @@
+Old Code
+.ipynb_checkpoints
+*.pyc
+__pycache__
