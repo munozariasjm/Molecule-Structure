@@ -155,12 +155,12 @@ def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
                 state_in = {q+'1':q_numbers[q][j] for q in q_str}
                 q_args = {**state_out,**state_in}
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
-                    params['h1/2Yb']*elements[] + params['dYb']*elements[]+params['e2Qq0']*elements[]\
-                    params['bFH']*elements['I.S'] + params['cH']*np.sqrt(6)/3*elements['T2_0(IS)']+\
-                    params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
-                    params['p+2q']*elements['Lambda-Doubling']
+                H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] #+ \
+                    # params['h1/2Yb']*elements[] + params['dYb']*elements[]+params['e2Qq0']*elements[]\
+                    # params['bFH']*elements['I.S'] + params['cH']*np.sqrt(6)/3*elements['T2_0(IS)']+\
+                    # params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+                    # Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
+                    # params['p+2q']*elements['Lambda-Doubling']
         H_symbolic = sy.Matrix(H)
         H_func = sy.lambdify((Ez,Bz), H_symbolic, modules='numpy')
         return H_func,H_symbolic
@@ -176,11 +176,11 @@ def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
                 state_in = {q+'1':q_numbers[q][j] for q in q_str}
                 q_args = {**state_out,**state_in}
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i,j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
-                    (params['bF']-params['c']/3)*elements['I.S'] + params['c']*elements['IzSz']+\
-                    params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
-                    params['p+2q']*elements['Lambda-Doubling']
+                H[i,j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] #+ \
+                    # (params['bF']-params['c']/3)*elements['I.S'] + params['c']*elements['IzSz']+\
+                    # params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+                    # Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
+                    # params['p+2q']*elements['Lambda-Doubling']
         return H
 
 def build_PTV_bBS(q_numbers,EDM_or_MQM):
