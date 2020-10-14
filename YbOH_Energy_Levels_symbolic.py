@@ -22,7 +22,7 @@ class YbOHLevels(object):
     '''
 
     @classmethod
-    def initialize_state(cls,isotope,state,N_range,all_M=True,round=5):
+    def initialize_state(cls,isotope,state,N_range,M_values='all',I=[0,1/2],S=1/2,round=5):
         if isotope not in ['170','171','172','173','174','176']:
             print(isotope, ' is not a valid isotope of Yb')
             return None
@@ -44,13 +44,11 @@ class YbOHLevels(object):
             'hunds_case': library.cases[iso_state],
             'Lambda': library.Lambda[iso_state],
             'N_range': N_range,
-            'all_M': all_M,
-            'round': round #how much to round eigenvalues and eigenvectors
-
-            # For later implementation:
-            #'e_spin': electron_spin[iso_state],
-            #'IYb_spin': nuclear_spin[iso_state]['Yb'],
-            #'iH_spin': nuclear_spin[iso_state]['H'],
+            'M_values': M_values,
+            'round': round,     #how much to round eigenvalues and eigenvectors
+            'e_spin': S,    #electronic spin number
+            'Yb_spin': I[0],    #spin of Yb nucleus
+            'H_spin': I[1]      #spin of H proton, I=0 means ignore
         }
         return cls(**properties)
 
