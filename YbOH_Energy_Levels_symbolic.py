@@ -6,9 +6,6 @@ from scipy import linalg as sciLA
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-# Initialize a library with relevant functions and parameters for all states
-library = YbOH_Library()
-
 class YbOHLevels(object):
 
     '''This class is used to determine energy levels for a given vibronic state
@@ -39,16 +36,11 @@ class YbOHLevels(object):
             'iso_state': iso_state,
             'isotope': isotope,
             'state': state,
-            'parameters': library.parameters[iso_state], # Hamiltonian parameters relevant to state and isotope
-            'matrix_elements': library.matrix_elements[iso_state], #
-            'hunds_case': library.cases[iso_state],
-            'Lambda': library.Lambda[iso_state],
             'N_range': N_range,
             'M_values': M_values,
             'round': round,     #how much to round eigenvalues and eigenvectors
             'e_spin': S,    #electronic spin number
-            'Yb_spin': I[0],    #spin of Yb nucleus
-            'H_spin': I[1]      #spin of H proton, I=0 means ignore
+            'I_spins': I    #spin of nuclei, [I_Yb, I_H]. I=0 means ignore
         }
         return cls(**properties)
 
@@ -57,19 +49,26 @@ class YbOHLevels(object):
         # Create attributes using properties dict
         self.__dict__.update(properties)
 
+        # Initialize a library with relevant functions and parameters for all states
+        self.library = YbOH_Library(self.I_spins)
+        self.parameters = self.library.parameters[self.iso_state] # Hamiltonian parameters relevant to state and isotope
+        self.matrix_elements = self.library.matrix_elements[self.iso_state]
+        self.hunds_case = self.library.cases[self.iso_state]
+        self.Lambda: self.library.Lambda[self.iso_state]
+
         # Create quantum number dictionary, contains arrays of angular momenta eigenvalues indexed by basis vector
         # Example: {'J':[0,1,1,1], 'M':[0,-1,0,1]}
-        self.q_numbers = library.q_number_builders[self.iso_state](self.N_range, all_M = self.all_M)
+        self.q_numbers = self.library.q_number_builders[self.iso_state](self.N_range, I_list=self.I_spins,M_values = self.M_values)
         self.q_str = list(self.q_numbers)
 
         # Create quantum numbers for alternate bases, like decoupled basis
-        self.alt_q_numbers = {basis: q_builder(self.N_range,all_M=self.all_M)
-            for basis,q_builder in library.alt_q_number_builders[self.iso_state].items()}
+        self.alt_q_numbers = {basis: q_builder(self.N_range,M_values = self.M_values)
+            for basis,q_builder in self.library.alt_q_number_builders[self.iso_state].items()}
 
         # Create Hamiltonian.
         # H_function is a function that takes (E,B) values as an argument, and returns a numpy matrix
         # H_symbolic is a symbolic sympy matrix of the Hamiltonian
-        self.H_function, self.H_symbolic = library.H_builders[self.iso_state](self.q_numbers)
+        self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers)
 
         # Find free field eigenvalues and eigenvectors
         self.eigensystem(0,1e-4)
@@ -185,10 +184,10 @@ class YbOHLevels(object):
     def PTV_shift(self,EDM_or_MQM):
         if '174' in self.iso_state:
             self.PTV_type = 'EDM'
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)
         elif '173' in self.iso_state:
             self.PTV_type = EDM_or_MQM
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
         self.H_PTV = H_PTV
         evals,evecs = self.evals0,self.evecs0
         PTV_shift = []
@@ -279,10 +278,10 @@ class YbOHLevels(object):
     def PTV_Map(self,EDM_or_MQM,E_or_B='E',plot=False):
         if '174' in self.iso_state:
             self.PTV_type = 'EDM'
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)
         elif '173' in self.iso_state:
             self.PTV_type = EDM_or_MQM
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
         self.H_PTV = H_PTV
         if E_or_B=='E':
             PTV_vs_E = []
@@ -398,13 +397,16 @@ class YbOHLevels(object):
         idx_filtered=np.array(idx_filtered)
         return idx_filtered
 
-    def display_levels(self,Ez,Bz,pattern_q,label=True,label_q =None,width=0.75,figsize=(10,10),ylim=None):
+    def display_levels(self,Ez,Bz,pattern_q,idx = None,label=True,label_q =None,width=0.75,figsize=(10,10),ylim=None):
         if label_q is None:
             label_q = self.q_str
         if Ez==self.E0 and Bz==self.B0:
             evals,evecs = [self.evals0,self.evecs0]
         else:
             evals,evecs = self.eigensystem(Ez,Bz, set_attr=True)
+        if idx is not None:
+            evals = evals[idx]
+            evecs = evecs[idx]
         if ylim is None:
             scale = abs(evals[-1]-evals[0])
             ylim = (evals[0]-0.1*scale,evals[-1]+0.1*scale)
@@ -450,10 +452,10 @@ class YbOHLevels(object):
     def display_PTV(self,Ez,Bz,EDM_or_MQM,width=0.75,figsize=(9,9),ylim=None):
         if '174' in self.iso_state:
             self.PTV_type = 'EDM'
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)
         elif '173' in self.iso_state:
             self.PTV_type = EDM_or_MQM
-            H_PTV = library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
         if Ez==self.E0 and Bz==self.B0:
             evals,evecs = [self.evals0,self.evecs0]
         else:
@@ -500,11 +502,11 @@ class YbOHLevels(object):
         inputt = self.q_numbers
         output = self.alt_q_numbers[new_case]
         if ('a' in new_case and 'b' in current_case) or ('b' in new_case and 'a' in current_case):
-            basis_matrix = library.basis_changers['a_b'](inputt,output)
+            basis_matrix = self.library.basis_changers['a_b'](inputt,output)
         elif ('decoupled' in new_case and 'b' in current_case):
-            basis_matrix = library.basis_changers['b_decoupled'](inputt,output)
+            basis_matrix = self.library.basis_changers['b_decoupled'](inputt,output)
         elif ('decoupled' in new_case and 'a' in current_case):
-            basis_matrix = library.basis_changers['a_decoupled'](inputt,output)
+            basis_matrix = self.library.basis_changers['a_decoupled'](inputt,output)
         converted_evecs = []
         for i in range(len(evecs)):
             converted_evecs.append(basis_matrix@evecs[i])
@@ -564,7 +566,7 @@ def XA_branching_ratios(X,A,Ez,Bz): # must be in case a
     A.eigensystem(Ez,Bz)
     X.eigensystem(Ez,Bz)
     X_evecs_a = X.convert_evecs('aBJ')
-    TDM_matrix = library.TDM_builders[A.iso_state](A.q_numbers,X.alt_q_numbers['aBJ'])
+    TDM_matrix = A.library.TDM_builders[A.iso_state](A.q_numbers,X.alt_q_numbers['aBJ'])
     BR_matrix = (X_evecs_a@TDM_matrix@A.evecs0.T)**2
     return BR_matrix
 

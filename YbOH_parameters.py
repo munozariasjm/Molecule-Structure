@@ -38,23 +38,23 @@ params_174A000 = {
 }
 
 params_173X000 = { # all units MHz except for muE
-'Be': 7353.01,
+'Be': 7350.97,
 'Gamma_SR': -81.064,
-'bFYb': -1886,
-'cYb': -102.0,
+'bFYb': -1882.67,
+'cYb': -80.04,
 'bFH': 4.80,
 'cH': 2.46,
-'e2Qq0': -3328,
+'e2Qq0': -3318.7,
 }
 
 params_173X010 = { # all units MHz except for muE
-'Be': 7353.01,
+'Be': 7350.97,
 'Gamma_SR': -81.064,
-'bFYb': -1886,
-'cYb': -102.0,
+'bFYb': -1882.67,
+'cYb': -80.04,
 'bFH': 4.80,
 'cH': 2.46,
-'e2Qq0': -3328,
+'e2Qq0': -3318.7,
 'q_lD': -10
 }
 

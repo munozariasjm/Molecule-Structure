@@ -33,6 +33,10 @@ def decouple_b_174(dcpl,b,S=1/2,I=1/2): #dcpl = decoupled
         M_J=dcpl['M_N']+dcpl['M_S']
         return (-1)**(I-b['J']+dcpl['M_F']+S-b['N']+M_J)*np.sqrt((2*b['F']+1)*(2*b['J']+1))*\
             wigner_3j(b['J'],I,b['F'],M_J,dcpl['M_I'],-dcpl['M_F'])*wigner_3j(b['N'],S,b['J'],dcpl['M_N'],dcpl['M_S'],-M_J)
+#
+# def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2, iH = 1/2):
+#     if not kronecker(bBS['F'],bBJ['F'])*kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['F'],bBJ['F']):
+#
 
 ########## Case bBJ ##############
 
@@ -224,7 +228,7 @@ def Rot_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2)
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
         return 0
     else:
-        return kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1)*(J0*(J0+1)+S*(S+1)-2*Omega0*Sigma0)+\
+        return kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1)*(J0*(J0+1)+S*(S+1)-2*Omega0*Sigma0)-\
             2*(-1)**(J0-(Omega0)+S-Sigma0)*np.sqrt((2*J0+1)*J0*(J0+1)*(2*S+1)*S*(S+1))*\
             sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 
@@ -331,8 +335,7 @@ def Rot_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10,F11)*kronecker(M0,M1)*kronecker(J0,J1):
         return 0
     else:
-
-        return kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1)*(J0*(J0+1)+S*(S+1)-2*Omega0*Sigma0)+\
+        return kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1)*(J0*(J0+1)+S*(S+1)-2*Omega0*Sigma0)-\
             2*(-1)**(J0-(Omega0)+S-Sigma0)*np.sqrt((2*J0+1)*J0*(J0+1)*(2*S+1)*S*(S+1))*\
             sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 

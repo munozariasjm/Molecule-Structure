@@ -36,9 +36,9 @@ class YbOH_Library(object):
     electron spin.
     '''
 
-    def __init__(self):
+    def __init__(self,I_spins):
         self.parameters = all_params
-        self.matrix_elements = self.collect_all_matrix_elements()
+        self.matrix_elements = self.collect_all_matrix_elements(I_spins)
         self.cases = self.collect_all_cases()
         self.H_builders = self.collect_all_H_builders()
         self.PTV_builders = self.collect_all_PTV_builders()
@@ -72,7 +72,10 @@ class YbOH_Library(object):
         return all_Lambda
 
 
-    def collect_all_matrix_elements(self):
+    def collect_all_matrix_elements(self,I_spins):
+        iH = I_spins[-1]
+        IYb = I_spins[0]
+
         bBJ_174X_matrix_elements={
         # Fine Structure
         'N^2': me.Rot_bBJ,                 # N^2 Rotation
@@ -89,6 +92,10 @@ class YbOH_Library(object):
         'ZeemanZ': me.ZeemanZ_bBJ,         # Zeeman interaction with lab z magnetic field
         'StarkZ': me.StarkZ_bBJ            # Stark interaction with lab z electric field
         }
+        for term,element in bBJ_174X_matrix_elements.items():       #iterate through, substitute hydrogen proton value
+            bBJ_174X_matrix_elements[term] = partial(element,I=iH)
+
+
 
 
         bBS_173X_matrix_elements={
@@ -110,7 +117,8 @@ class YbOH_Library(object):
         'ZeemanZ': me.ZeemanZ_bBS,         # Zeeman interaction with lab z magnetic field
         'StarkZ': me.StarkZ_bBS            # Stark interaction with lab z electric field
         }
-
+        for term, element in bBS_173X_matrix_elements.items():      #substitue nuclear spin values
+             bBS_173X_matrix_elements[term] = partial(element,iH=iH,I=IYb)
 
         aBJ_174A_matrix_elements={
         # Fine Structure
@@ -129,6 +137,8 @@ class YbOH_Library(object):
         'ZeemanParityZ': me.ZeemanParityZ_174_aBJ,
         'StarkZ': me.StarkZ_174_aBJ,            # Stark interaction with lab z electric field
         }
+        for term, element in aBJ_174A_matrix_elements.items():      #substitue nuclear spin values
+             aBJ_174A_matrix_elements[term] = partial(element,I=iH)
 
 
         aBJ_173A_matrix_elements={
@@ -143,14 +153,16 @@ class YbOH_Library(object):
 
 
         # Hydrogen Hyperfine
-        # 'IS': ,                   # I.S Fermi Contact Interaction
-        # 'Iz': ,                   # I.n projection of I on internuclear axis n
-        # 'Sz': ,                   # S.n projection of S on internuclear axis n
-
-        # External Fields
-        # 'ZeemanZ': me.ZeemanZ_bBS,         # Zeeman interaction with lab z magnetic field
-        # 'StarkZ': me.StarkZ_bBS            # Stark interaction with lab z electric field
+        # 'IS_H': ,                   # I.S Fermi Contact Interaction
+        # 'Iz_H': ,                   # I.n projection of I on internuclear axis n
+        # 'Sz_H': ,                   # S.n projection of S on internuclear axis n
+        #
+        # # External Fields
+        # 'ZeemanZ': me.ZeemanZ_aBJ,         # Zeeman interaction with lab z magnetic field
+        # 'StarkZ': me.StarkZ_a            # Stark interaction with lab z electric field
         }
+        for term, element in aBJ_173A_matrix_elements.items():      #substitue nuclear spin values
+             aBJ_173A_matrix_elements[term] = partial(element,iH=iH,I=IYb)
 
         all_matrix_elements={
         '174X000': bBJ_174X_matrix_elements,
