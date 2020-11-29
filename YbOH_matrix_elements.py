@@ -20,7 +20,7 @@ def kronecker(a,b):         # Kronecker delta function
     else:
         return 0
 
-def b2a_matrix_174(a,b,S=1/2,I=1/2):
+def b2a_matrix_174(a,b,S=1/2):
     if not kronecker(a['L'],b['L'])*kronecker(a['J'],b['J'])*kronecker(a['F'],b['F'])*kronecker(a['M'],b['M']):
         return 0
     else:
@@ -33,10 +33,17 @@ def decouple_b_174(dcpl,b,S=1/2,I=1/2): #dcpl = decoupled
         M_J=dcpl['M_N']+dcpl['M_S']
         return (-1)**(I-b['J']+dcpl['M_F']+S-b['N']+M_J)*np.sqrt((2*b['F']+1)*(2*b['J']+1))*\
             wigner_3j(b['J'],I,b['F'],M_J,dcpl['M_I'],-dcpl['M_F'])*wigner_3j(b['N'],S,b['J'],dcpl['M_N'],dcpl['M_S'],-M_J)
-#
-# def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2, iH = 1/2):
-#     if not kronecker(bBS['F'],bBJ['F'])*kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['F'],bBJ['F']):
-#
+
+def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2):
+    if not kronecker(bBS['F'],bBJ['F'])*kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['N'],bBJ['N']) :
+        return 0
+    else:
+        F = bBS['F']
+        N = bBS['N']
+        G = bBS['G']
+        J = bBJ['J']
+        return (-1)**(I+S+F+N)*np.sqrt((2*G+1)*(2*J+1))*wigner_6j(I,S,G,N,F,J)
+
 
 ########## Case bBJ ##############
 
