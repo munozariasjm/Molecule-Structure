@@ -499,6 +499,7 @@ class YbOHLevels(object):
         if new_case == current_case:
             print('Eigenvectors already in {} basis'.format(current_case))
             return evecs
+
         inputt = self.q_numbers
         output = self.alt_q_numbers[new_case]
         if ('a' in new_case and 'b' in current_case) or ('b' in new_case and 'a' in current_case):

@@ -99,6 +99,11 @@ def ZeemanZ_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
         return (-1)**(F0-M0+F1+2*J0+I+N0+S)*np.sqrt((2*F0+1)*(2*F1+1)*(2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(F0,J0,I,J1,F1,1)*wigner_6j(J0,S,N0,S,J1,1)*wigner_3j(F0,1,F1,-M0,0,M1)
 
+#def ZeemanPlus_bBJ():
+
+#def ZeemanMinus_bBJ():
+
+
 def StarkZ_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(M0,M1):
         return 0

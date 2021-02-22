@@ -14,8 +14,8 @@ def add_J(J1,J2):
     Jsum = np.arange(abs(J1-J2),J1+J2+1, 1)
     return nsum,Jsum
 
-def add_J_list(J_list):
-    for (i,J) in enumerate(J_list):
+# def add_J_list(J_list):
+#     for (i,J) in enumerate(J_list):
 
 
 def recursive_count(J_list,M_values,i,J = None):
@@ -23,7 +23,7 @@ def recursive_count(J_list,M_values,i,J = None):
     Ji = J_list[i]
     n = len(J_list) - i
     sum = 0
-    if if n>1:
+    if n>1:
         for Jf in np.arange(abs(J0-Ji),J0+Ji+1,1):
             sum+=iter_count(J_list,M_values,i+1,J=Jf)
         return sum
@@ -36,8 +36,6 @@ def recursive_count(J_list,M_values,i,J = None):
             for Jf in np.arange(abs(J0-Ji),J0+Ji+1,1):
                 sum+=1
             return sum
-
-def
 
 #
 #     if len(J_list)
