@@ -190,15 +190,14 @@ class YbOH_Library(object):
 
     def collect_all_q_number_builders(self):
         q_number_builders = {
-            '174X000': partial(qn.q_numbers_174_bBJ, Lambda=0),
-            '174X010': partial(qn.q_numbers_174_bBJ, Lambda=1),
-            '173X000': partial(qn.q_numbers_173_bBS, Lambda=0),
-            '173X010': partial(qn.q_numbers_173_bBS, Lambda=1),
-            '174A000': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2]),
-            '173A000': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2]),
-            '174aBJ': qn.q_numbers_174_aBJ,
-            '174bBJ': qn.q_numbers_174_bBJ
-            #'173A000': partial(q_numbers_173_aBJ, Lambda=1,Omega=[1/2])
+            '174X000': partial(qn.q_numbers_bBJ, Lambda=0),
+            '174X010': partial(qn.q_numbers_bBJ, Lambda=1),
+            '173X000': partial(qn.q_numbers_bBS, Lambda=0),
+            '173X010': partial(qn.q_numbers_bBS, Lambda=1),
+            '174A000': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2]),
+            '173A000': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2]),
+            '174aBJ': qn.q_numbers_aBJ,
+            '174bBJ': qn.q_numbers_bBJ,
         }
         return q_number_builders
 
@@ -227,28 +226,28 @@ class YbOH_Library(object):
     def collect_alt_q(self):
         alt_q_builders = {
             '174X000': {
-                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=0),
-                'decoupled': partial(qn.q_numbers_174_decoupled, Lambda=0)
+                'aBJ': partial(qn.q_numbers_aBJ, Lambda=0),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=0)
                 },
             '174X010': {
-                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
-                'decoupled': partial(qn.q_numbers_174_decoupled, Lambda=1)
+                'aBJ': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
                 },
             '173X000': {
-                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=0),
-                'decoupled': partial(qn.q_numbers_173_decoupled,Lambda=0)
+                'aBJ': partial(qn.q_numbers_aBJ, Lambda=0),
+                'decoupled': partial(qn.q_numbers_decoupled,Lambda=0)
             },
             '173X010': {
-                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
-                'decoupled': partial(qn.q_numbers_173_decoupled, Lambda=1)
+                'aBJ': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
             },
             '174A000': {
-                'bBS': partial(qn.q_numbers_174_bBJ, Lambda=1),
-                'decoupled': partial(qn.q_numbers_174_decoupled, Lambda=1)
+                'bBS': partial(qn.q_numbers_bBJ, Lambda=1),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
             },
             '173A000': {
-                'bBS': partial(qn.q_numbers_173_bBS, Lambda=1),
-                'decoupled': partial(qn.q_numbers_173_decoupled, Lambda=1)
+                'bBS': partial(qn.q_numbers_bBS, Lambda=1),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
             }
         }
         return alt_q_builders
