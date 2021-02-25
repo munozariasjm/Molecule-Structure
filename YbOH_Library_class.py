@@ -36,16 +36,16 @@ class YbOH_Library(object):
     electron spin.
     '''
 
-    def __init__(self,I_spins):
+    def __init__(self,I_spins,M_values):
         self.parameters = all_params
-        self.matrix_elements = self.collect_all_matrix_elements(I_spins)
+        self.matrix_elements = self.collect_all_matrix_elements(I_spins,M_values)
         self.cases = self.collect_all_cases()
         self.H_builders = self.collect_all_H_builders()
         self.PTV_builders = self.collect_all_PTV_builders()
         self.q_number_builders = self.collect_all_q_number_builders()
         self.Lambda = self.collect_all_Lambda()
         self.basis_changers = self.collect_change_basis()
-        self.TDM_builders = self.collect_TDM()
+        self.TDM_builders = self.collect_TDM(I_spins,M_values)
         self.alt_q_number_builders = self.collect_alt_q()
 
 
@@ -72,9 +72,10 @@ class YbOH_Library(object):
         return all_Lambda
 
 
-    def collect_all_matrix_elements(self,I_spins):
+    def collect_all_matrix_elements(self,I_spins,M_values):
         iH = I_spins[-1]
         IYb = I_spins[0]
+
 
         bBJ_174X_matrix_elements={
         # Fine Structure
@@ -88,10 +89,15 @@ class YbOH_Library(object):
         'Iz': me.Iz_bBJ,                   # I.n projection of I on internuclear axis n
         'Sz': me.Sz_bBJ,                   # S.n projection of S on internuclear axis n
 
-        # External Fields
-        'ZeemanZ': me.ZeemanZ_bBJ,         # Zeeman interaction with lab z magnetic field
-        'StarkZ': me.StarkZ_bBJ            # Stark interaction with lab z electric field
         }
+
+        if M_values != 'None':
+            ext_fields = {
+            # External Fields
+            'ZeemanZ': me.ZeemanZ_bBJ,         # Zeeman interaction with lab z magnetic field
+            'StarkZ': me.StarkZ_bBJ            # Stark interaction with lab z electric field
+            }
+            bBJ_174X_matrix_elements.update(ext_fields)
         for term,element in bBJ_174X_matrix_elements.items():       #iterate through, substitute hydrogen proton value
             bBJ_174X_matrix_elements[term] = partial(element,I=iH)
 
@@ -117,6 +123,14 @@ class YbOH_Library(object):
         'ZeemanZ': me.ZeemanZ_bBS,         # Zeeman interaction with lab z magnetic field
         'StarkZ': me.StarkZ_bBS            # Stark interaction with lab z electric field
         }
+
+        if M_values != 'None':
+            ext_fields = {
+            # External Fields
+            'ZeemanZ': me.ZeemanZ_bBS,         # Zeeman interaction with lab z magnetic field
+            'StarkZ': me.StarkZ_bBS            # Stark interaction with lab z electric field
+            }
+            bBS_173X_matrix_elements.update(ext_fields)
         for term, element in bBS_173X_matrix_elements.items():      #substitue nuclear spin values
              bBS_173X_matrix_elements[term] = partial(element,iH=iH,I=IYb)
 
@@ -137,9 +151,20 @@ class YbOH_Library(object):
         'ZeemanParityZ': me.ZeemanParityZ_174_aBJ,
         'StarkZ': me.StarkZ_174_aBJ,            # Stark interaction with lab z electric field
         }
+
+
+        if M_values != 'None':
+            ext_fields = {
+            # External Fields
+            'ZeemanLZ': me.ZeemanLZ_174_aBJ,
+            'ZeemanSZ': me.ZeemanSZ_174_aBJ,
+            'ZeemanParityZ': me.ZeemanParityZ_174_aBJ,
+            'StarkZ': me.StarkZ_174_aBJ,            # Stark interaction with lab z electric field
+            }
+            aBJ_174A_matrix_elements.update(ext_fields)
+
         for term, element in aBJ_174A_matrix_elements.items():      #substitue nuclear spin values
              aBJ_174A_matrix_elements[term] = partial(element,I=iH)
-
 
         aBJ_173A_matrix_elements={
         # Fine Structure
@@ -149,7 +174,7 @@ class YbOH_Library(object):
         # Yb Hypeerfine
         'IzLz_Yb': me.ILYb_173_aBJ,
         'T2_2(IS)_Yb': me.T2q2_ISYb_173_aBJ,
-        'T2_0(IS)_Yb': me.T2q0_IYb_173_aBJ,
+        'T2_0(II)_Yb': me.T2q0_IYb_173_aBJ,
 
 
         # Hydrogen Hyperfine
@@ -161,6 +186,17 @@ class YbOH_Library(object):
         # 'ZeemanZ': me.ZeemanZ_aBJ,         # Zeeman interaction with lab z magnetic field
         # 'StarkZ': me.StarkZ_a            # Stark interaction with lab z electric field
         }
+
+
+        if M_values != 'None':
+            ext_fields = {
+            # External Fields
+            'ZeemanLZ': me.ZeemanLZ_173_aBJ,
+            'ZeemanSZ': me.ZeemanSZ_173_aBJ,
+            'ZeemanParityZ': me.ZeemanParityZ_173_aBJ,
+            'StarkZ': me.StarkZ_173_aBJ,            # Stark interaction with lab z electric field
+            }
+            aBJ_173A_matrix_elements.update(ext_fields)
         for term, element in aBJ_173A_matrix_elements.items():      #substitue nuclear spin values
              aBJ_173A_matrix_elements[term] = partial(element,iH=iH,I=IYb)
 
@@ -194,9 +230,9 @@ class YbOH_Library(object):
             '174X010': partial(qn.q_numbers_bBJ, Lambda=1),
             '173X000': partial(qn.q_numbers_bBS, Lambda=0),
             '173X010': partial(qn.q_numbers_bBS, Lambda=1),
-            '174A000': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2]),
-            '173A000': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2]),
-            '174aBJ': qn.q_numbers_aBJ,
+            '174A000': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2]),
+            '173A000': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2]),
+            '174aBJ': qn.q_numbers_174_aBJ,
             '174bBJ': qn.q_numbers_bBJ,
         }
         return q_number_builders
@@ -217,28 +253,38 @@ class YbOH_Library(object):
         }
         return all_change_basis
 
-    def collect_TDM(self):
-        all_TDM = {
-            '174A000': partial(ham.build_TDM_174_aBJ,TDM_matrix_element=me.TransitionDipole_174_aBJ)
-        }
+    def collect_TDM(self,M_values,I_spins):
+        iH = I_spins[-1]
+        IYb = I_spins[0]
+        if M_values != 'none':
+            all_TDM = {
+                '174A000': partial(ham.build_TDM_aBJ,TDM_matrix_element=partial(me.TransitionDipole_174_aBJ,I=iH)),
+                '173A000': partial(ham.build_TDM_aBJ,TDM_matrix_element=partial(me.TransitionDipole_173_aBJ,iH=iH,I=IYb))
+            }
+        else:
+            all_TDM = {
+                '174A000': partial(ham.build_TDM_aBJ,TDM_matrix_element=partial(me.TransitionDipole_174_aBJ_noM,I=iH)),
+                '173A000': partial(ham.build_TDM_aBJ,TDM_matrix_element=partial(me.TransitionDipole_173_aBJ_noM,iH=iH,I=IYb))
+            }
+            return all_TDM
         return all_TDM
 
     def collect_alt_q(self):
         alt_q_builders = {
             '174X000': {
-                'aBJ': partial(qn.q_numbers_aBJ, Lambda=0),
+                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=0),
                 'decoupled': partial(qn.q_numbers_decoupled, Lambda=0)
                 },
             '174X010': {
-                'aBJ': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
+                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
                 'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
                 },
             '173X000': {
-                'aBJ': partial(qn.q_numbers_aBJ, Lambda=0),
+                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=0),
                 'decoupled': partial(qn.q_numbers_decoupled,Lambda=0)
             },
             '173X010': {
-                'aBJ': partial(qn.q_numbers_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
+                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
                 'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
             },
             '174A000': {

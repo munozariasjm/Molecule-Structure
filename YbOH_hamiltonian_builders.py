@@ -4,7 +4,7 @@ from functools import partial
 from YbOH_parameters import params_general
 from YbOH_matrix_elements import MQM_bBS,EDM_bBS,Sz_bBJ,T2QYb_bBS,b2a_matrix_174,decouple_b_174
 
-def H_174X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
+def H_174X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all',precision=5):
     q_str = list(q_numbers)     # Get keys for quantum number dict
     if symbolic:
         Ez,Bz = sy.symbols('Ez Bz')
@@ -24,10 +24,11 @@ def H_174X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
                 # The Hamiltonian
                 H[i][j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
                     params['bF']*elements['I.S'] + params['c']/3*np.sqrt(6)*elements['T2_0(I,S)']
-                H[i][j] = round(H[i][j],6)
-                H[i][j]+=round(params['g_S']*params['mu_B']*elements['ZeemanZ'],6)*Bz - round(params['muE_X']*elements['StarkZ'],6)*Ez
+                if M_values!='none':
+                    H[i][j]+=params['g_S']*params['mu_B']*elements['ZeemanZ']*Bz - params['muE_X']*elements['StarkZ']*Ez
                 if params.get('q_lD') is not None:
-                    H[i][j] += round(params['q_lD']/2*elements['l-doubling'],6)
+                    H[i][j] += params['q_lD']/2*elements['l-doubling']
+                # H[i][j] = round(H[i][j],precision)
                 #Iz[i][j] = params['c']*elements['Iz']
                 #Sz[i][j] = elements['Sz']
         # Need to construct IzSz term and add to Hamiltonian
@@ -38,31 +39,31 @@ def H_174X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
         H_func = sy.lambdify((Ez,Bz), H_symbolic, modules='numpy')
         return H_func,H_symbolic
     # Same as above, but fully numeric
-    else:
-        Ez,Bz = [E,B]
-        size = len(q_numbers[q_str[0]])
-        H = np.zeros((size,size))
-        Iz = np.zeros((size,size))
-        Sz = np.zeros((size,size))
-        for i in range(size):
-            for j in range(size):
-                state_out = {q+'0':q_numbers[q][i] for q in q_str}
-                state_in = {q+'1':q_numbers[q][j] for q in q_str}
-                q_args = {**state_out,**state_in}
-                elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i,j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
-                    params['b']*elements['I.S'] + \
-                    bend*params['q_lD']/2*lD_bBJ(*state_out,*state_in)+\
-                    params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
-                if params.get('q_lD') is not None:
-                    H[i,j] += params['q_lD']/2*elements['l-doubling']
-                Iz[i,j] = elements['Iz']
-                Sz[i,j] = elements['Sz']
-        H = H + params['c']*(Iz@Sz)
+    # else:
+    #     Ez,Bz = [E,B]
+    #     size = len(q_numbers[q_str[0]])
+    #     H = np.zeros((size,size))
+    #     Iz = np.zeros((size,size))
+    #     Sz = np.zeros((size,size))
+    #     for i in range(size):
+    #         for j in range(size):
+    #             state_out = {q+'0':q_numbers[q][i] for q in q_str}
+    #             state_in = {q+'1':q_numbers[q][j] for q in q_str}
+    #             q_args = {**state_out,**state_in}
+    #             elements = {term: element(**q_args) for term, element in matrix_elements.items()}
+    #             H[i,j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
+    #                 params['b']*elements['I.S'] + \
+    #                 bend*params['q_lD']/2*lD_bBJ(*state_out,*state_in)+\
+    #                 params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
+    #             if params.get('q_lD') is not None:
+    #                 H[i,j] += params['q_lD']/2*elements['l-doubling']
+    #             Iz[i,j] = elements['Iz']
+    #             Sz[i,j] = elements['Sz']
+    #     H = H + params['c']*(Iz@Sz)
         return H
 
 # See documentation for H_174X
-def H_174A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,SO=0):
+def H_174A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,SO=0,M_values='all',precision=5):
     q_str = list(q_numbers)
     if symbolic:
         Ez,Bz = sy.symbols('Ez Bz')
@@ -76,33 +77,35 @@ def H_174A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,SO=0):
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
                 H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
                     params['bF']*elements['I.S'] + params['c']*np.sqrt(6)/3*elements['T2_0(IS)']+\
-                    params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
                     params['p+2q']*elements['Lambda-Doubling']
+                if M_values!='none':
+                    H[i][j]+=params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']
+                # H[i][j] = round(H[i][j],precision)
         H_symbolic = sy.Matrix(H)
         H_func = sy.lambdify((Ez,Bz), H_symbolic, modules='numpy')
         return H_func,H_symbolic
-    else:
-        Ez,Bz = [E,B]
-        size = len(q_numbers[q_str[0]])
-        H = np.zeros((size,size))
-        Iz = np.zeros((size,size))
-        Sz = np.zeros((size,size))
-        for i in range(size):
-            for j in range(size):
-                state_out = {q+'0':q_numbers[q][i] for q in q_str}
-                state_in = {q+'1':q_numbers[q][j] for q in q_str}
-                q_args = {**state_out,**state_in}
-                elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i,j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
-                    (params['bF']-params['c']/3)*elements['I.S'] + params['c']*elements['IzSz']+\
-                    params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
-                    params['p+2q']*elements['Lambda-Doubling']
+    # else:
+    #     Ez,Bz = [E,B]
+    #     size = len(q_numbers[q_str[0]])
+    #     H = np.zeros((size,size))
+    #     Iz = np.zeros((size,size))
+    #     Sz = np.zeros((size,size))
+    #     for i in range(size):
+    #         for j in range(size):
+    #             state_out = {q+'0':q_numbers[q][i] for q in q_str}
+    #             state_in = {q+'1':q_numbers[q][j] for q in q_str}
+    #             q_args = {**state_out,**state_in}
+    #             elements = {term: element(**q_args) for term, element in matrix_elements.items()}
+    #             H[i,j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
+    #                 (params['bF']-params['c']/3)*elements['I.S'] + params['c']*elements['IzSz']+\
+    #                 params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+    #                 Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
+    #                 params['p+2q']*elements['Lambda-Doubling']
         return H
 
 # See documentation for H_174X
-def H_173X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
+def H_173X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all',precision=5):
     q_str = list(q_numbers)
     if symbolic:
         Ez,Bz = sy.symbols('Ez Bz')
@@ -117,33 +120,35 @@ def H_173X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
                 H[i][j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
                     params['bFYb']*elements['IYb.S'] + np.sqrt(6)*params['cYb']*elements['T2_0(IYb,S)'] +\
                     np.sqrt(6)/(4*5/2*(2*5/2-1))*params['e2Qq0']*elements['T2_0(IYb^2)'] +\
-                    params['bFH']*elements['IH.S'] + (-np.sqrt(10))*params['cH']/3*elements['T2_0(IH,S)'] +\
-                    params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
+                    params['bFH']*elements['IH.S'] + (-np.sqrt(10))*params['cH']/3*elements['T2_0(IH,S)']
+                if M_values != 'none':
+                    H[i][j]+=params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
                 if params.get('q_lD') is not None:
                     H[i][j] += params['q_lD']/2*elements['l-doubling']
+                # H[i][j] = round(H[i][j],precision)
         H_symbolic = sy.Matrix(H)
         H_func = sy.lambdify((Ez,Bz), H_symbolic, modules='numpy')
         return H_func,H_symbolic
-    else:
-        Ez,Bz = [E,B]
-        size = len(q_numbers[q_str[0]])
-        H = np.zeros((size,size))
-        for i in range(size):
-            for j in range(size):
-                state_out = {q+'0':q_numbers[q][i] for q in q_str}
-                state_in = {q+'1':q_numbers[q][j] for q in q_str}
-                q_args = {**state_out,**state_in}
-                elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i,j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
-                    params['bFYb']*elements['IYb.S'] + np.sqrt(6)*params['cYb']*elements['T2_0(IYb,S)'] +\
-                    np.sqrt(6)/(4*5/2*(2*5/2-1))*params['e2Qq0']*elements['T2_0(IYb^2)'] +\
-                    params['bFH']*elements['IH.S'] + (-np.sqrt(10))*params['cH']/3*elements['T2_0(IH,S)']+\
-                    params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
-                if params.get('q_lD') is not None:
-                    H[i,j] += params['q_lD']/2*elements['l-doubling']
+    # else:
+    #     Ez,Bz = [E,B]
+    #     size = len(q_numbers[q_str[0]])
+    #     H = np.zeros((size,size))
+    #     for i in range(size):
+    #         for j in range(size):
+    #             state_out = {q+'0':q_numbers[q][i] for q in q_str}
+    #             state_in = {q+'1':q_numbers[q][j] for q in q_str}
+    #             q_args = {**state_out,**state_in}
+    #             elements = {term: element(**q_args) for term, element in matrix_elements.items()}
+    #             H[i,j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
+    #                 params['bFYb']*elements['IYb.S'] + np.sqrt(6)*params['cYb']*elements['T2_0(IYb,S)'] +\
+    #                 np.sqrt(6)/(4*5/2*(2*5/2-1))*params['e2Qq0']*elements['T2_0(IYb^2)'] +\
+    #                 params['bFH']*elements['IH.S'] + (-np.sqrt(10))*params['cH']/3*elements['T2_0(IH,S)']+\
+    #                 params['g_S']*params['mu_B']*Bz*elements['ZeemanZ'] - params['muE_X']*Ez*elements['StarkZ']
+    #             if params.get('q_lD') is not None:
+    #                 H[i,j] += params['q_lD']/2*elements['l-doubling']
         return H
 
-def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
+def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all',precision=5):
     q_str = list(q_numbers)
     if symbolic:
         Ez,Bz = sy.symbols('Ez Bz')
@@ -155,12 +160,16 @@ def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0):
                 state_in = {q+'1':q_numbers[q][j] for q in q_str}
                 q_args = {**state_out,**state_in}
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
-                H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] #+ \
-                    # params['h1/2Yb']*elements[] + params['dYb']*elements[]+params['e2Qq0']*elements[]\
-                    # params['bFH']*elements['I.S'] + params['cH']*np.sqrt(6)/3*elements['T2_0(IS)']+\
-                    # params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    # Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
-                    # params['p+2q']*elements['Lambda-Doubling']
+                H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO']+\
+                    params['h1/2Yb']*elements['IzLz_Yb'] + params['dYb']*elements['T2_2(IS)_Yb']+params['e2Qq0']*elements['T2_0(II)_Yb']+\
+                    params['p+2q']*elements['Lambda-Doubling']
+                if M_values!='none':
+                    H[i][j]+=params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']
+                # H[i][j] = round(H[i][j],precision)
+
+
+                    # params['bFH']*elements['I.S'] + params['cH']*np.sqrt(6)/3*elements['T2_0(IS)']
         H_symbolic = sy.Matrix(H)
         H_func = sy.lambdify((Ez,Bz), H_symbolic, modules='numpy')
         return H_func,H_symbolic
@@ -216,7 +225,7 @@ def build_PTV_bBJ(q_numbers):
             H_PTV[i,j] = -EDM*Sz_bBJ(**q_args)
     return H_PTV
 
-def build_TDM_174_aBJ(q_in,q_out,TDM_matrix_element):
+def build_TDM_aBJ(q_in,q_out,TDM_matrix_element):
     q_str_in = list(q_in)
     q_str_out = list(q_out)
     size_in = len(q_in[q_str_in[0]])

@@ -341,6 +341,29 @@ def TransitionDipole_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1
         # TDM_total = TDM_plus + TDM_zero + TDM_minus
         return TDM_total
 
+def TransitionDipole_174_aBJ_noM(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,Sigma1):
+        return 0
+    else:
+        TDM_total = sum([
+            sum([
+                sum([(-1)**(p)*\
+                    sum([
+                        (-1)**(F0-_M0)*wigner_3j(F0,1,F1,-_M0,p,_M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+                            wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1)\
+                            for q in [-1,1]]) # Since L is changing, can only get q=+-1 transitions
+                    for p in range(-1,2)])
+                for _M0 in np.arange(-F0,F0+1,1)])
+            for _M1 in np.arange(-F1,F1+1,1)])
+        # TDM_plus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_zero = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_minus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,-1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_total = TDM_plus + TDM_zero + TDM_minus
+        return TDM_total
+
 ########## 173YbOH Case aBJ ##############
 
 def Rot_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
@@ -381,3 +404,87 @@ def LambdaDoubling_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11
     else:
         return (-1)**(J0-Omega0+S-Sigma0)*np.sqrt((2*J0+1)*(J0+1)*J0*(2*S+1)*(S+1)*S)*\
             sum([kronecker(L1,L0-2*q)*wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,-q,Sigma1) for q in [-1,1]])
+
+
+def ZeemanLZ_173_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(L0,L1)*kronecker(Sigma0,Sigma1):
+        return 0
+    else:
+        return L0*(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
+            (-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(F11,F1,iH,F0,F10,1)*\
+            (-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*wigner_6j(J1,F11,I,F10,J0,1)*\
+            (-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,0,Omega1)
+
+def ZeemanSZ_173_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(L0,L1):
+        return 0
+    else:
+        return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
+            (-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(F11,F1,iH,F0,F10,1)*\
+            (-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*wigner_6j(J1,F11,I,F10,J0,1)*\
+            (-1)**(J0-Omega0+S-Sigma0)*np.sqrt((2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
+            sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,0,1]])
+
+def ZeemanParityZ_173_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
+    if kronecker(L0,L1):
+        return 0
+    else:
+        return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
+            (-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(F11,F1,iH,F0,F10,1)*\
+            (-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*wigner_6j(J1,F11,I,F10,J0,1)*\
+            np.sqrt((2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
+            sum([kronecker(L0,L1-2*q)*(-1)**(J0-Omega0+S-Sigma0)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
+
+def StarkZ_173_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(L0,L1)*kronecker(Sigma0,Sigma1):
+        return 0
+    else:
+        return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
+            (-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(F11,F1,iH,F0,F10,1)*\
+            (-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*wigner_6j(J1,F11,I,F10,J0,1)*\
+            (-1)**(J0-Omega0)*wigner_3j(J0,1,J1,-Omega0,0,Omega1)*np.sqrt((2*J0+1)*(2*J1+1))
+
+
+def TransitionDipole_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
+    if not kronecker(Sigma0,Sigma1):
+        return 0
+    else:
+        TDM_total = sum([(-1)**(p)*\
+            sum([
+                (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+                    wigner_6j(F11,F1,iH,F0,F10,1)*(-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*\
+                    wigner_6j(J1,F11,I,F10,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1)
+                    for q in [-1,1]]) # Since L is changing, can only get q=+-1 transitions
+            for p in range(-1,2)])
+        # TDM_plus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_zero = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_minus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,-1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_total = TDM_plus + TDM_zero + TDM_minus
+        return TDM_total
+
+def TransitionDipole_173_aBJ_noM(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=5/2,iH=1/2):
+    if not kronecker(Sigma0,Sigma1):
+        return 0
+    else:
+        TDM_total = sum([
+            sum([
+                sum([(-1)**(p)*\
+                    sum([
+                        (-1)**(F0-_M0)*wigner_3j(F0,1,F1,-_M0,p,_M1)*(-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+                            wigner_6j(F11,F1,iH,F0,F10,1)*(-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*\
+                            wigner_6j(J1,F11,I,F10,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1)
+                            for q in [-1,1]]) # Since L is changing, can only get q=+-1 transitions
+                    for p in range(-1,2)])
+                for _M0 in np.arange(-F0,F0+1,1)])
+            for _M1 in np.arange(-F1,F1+1,1)])
+        # TDM_plus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_zero = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_minus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,-1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
+        # TDM_total = TDM_plus + TDM_zero + TDM_minus
+        return TDM_total

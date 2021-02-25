@@ -50,7 +50,7 @@ class YbOHLevels(object):
         self.__dict__.update(properties)
 
         # Initialize a library with relevant functions and parameters for all states
-        self.library = YbOH_Library(self.I_spins)
+        self.library = YbOH_Library(self.I_spins,self.M_values)
         self.parameters = self.library.parameters[self.iso_state] # Hamiltonian parameters relevant to state and isotope
         self.matrix_elements = self.library.matrix_elements[self.iso_state]
         self.hunds_case = self.library.cases[self.iso_state]
@@ -68,7 +68,7 @@ class YbOHLevels(object):
         # Create Hamiltonian.
         # H_function is a function that takes (E,B) values as an argument, and returns a numpy matrix
         # H_symbolic is a symbolic sympy matrix of the Hamiltonian
-        self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers)
+        self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,M_values=self.M_values,precision=self.round)
 
         # Find free field eigenvalues and eigenvectors
         self.eigensystem(0,1e-4)
@@ -124,7 +124,7 @@ class YbOHLevels(object):
         evecs_old = evecs0
         for B in Bz_array[1:]:
             evals_new,evecs_new = self.eigensystem(Ez_val,B)
-            order = state_ordering(evecs_old,evecs_new,round=self.round-1)
+            order = state_ordering(evecs_old,evecs_new,round=self.round)
             evecs_ordered = evecs_new[order,:]
             evals_ordered = evals_new[order]
             evecs_B.append(evecs_ordered)
@@ -147,7 +147,7 @@ class YbOHLevels(object):
         evecs_old = evecs0
         for E in Ez_array[1:]:
             evals_new,evecs_new = self.eigensystem(E,Bz_val)
-            order = state_ordering(evecs_old,evecs_new,round=self.round-1)
+            order = state_ordering(evecs_old,evecs_new,round=self.round)
             evecs_ordered = evecs_new[order,:]
             evals_ordered = evals_new[order]
             evecs_E.append(evecs_ordered)
@@ -166,7 +166,7 @@ class YbOHLevels(object):
     def g_eff_evecs(self,evals,evecs,Ez,Bz,step=1e-7):
         evals0,evecs0 = evals,evecs
         evals1,evecs1 = self.eigensystem(Ez,Bz+step,set_attr=False)
-        order = state_ordering(evecs0,evecs1,round=self.round-1)
+        order = state_ordering(evecs0,evecs1,round=self.round)
         evecs1_ordered = evecs1[order,:]
         evals1_ordered = evals1[order]
         g_eff = []
