@@ -2,7 +2,7 @@ import numpy as np
 import sympy as sy
 from functools import partial
 from YbOH_parameters import params_general
-from YbOH_matrix_elements import MQM_bBS,EDM_bBS,Sz_bBJ,T2QYb_bBS,b2a_matrix_174,decouple_b_174
+from YbOH_matrix_elements import MQM_bBS,EDM_bBS,Sz_bBJ,T2QYb_bBS,b2a_matrix,decouple_b_174,bBS_2_bBJ_matrix
 
 def H_174X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all',precision=5):
     q_str = list(q_numbers)     # Get keys for quantum number dict
@@ -118,7 +118,7 @@ def H_173X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all'
                 q_args = {**state_out,**state_in}
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
                 H[i][j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
-                    params['bFYb']*elements['IYb.S'] + np.sqrt(6)*params['cYb']*elements['T2_0(IYb,S)'] +\
+                    params['bFYb']*elements['IYb.S'] + np.sqrt(6)/3*params['cYb']*elements['T2_0(IYb,S)'] +\
                     np.sqrt(6)/(4*5/2*(2*5/2-1))*params['e2Qq0']*elements['T2_0(IYb^2)'] +\
                     params['bFH']*elements['IH.S'] + (-np.sqrt(10))*params['cH']/3*elements['T2_0(IH,S)']
                 if M_values != 'none':
@@ -148,7 +148,7 @@ def H_173X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all'
     #                 H[i,j] += params['q_lD']/2*elements['l-doubling']
         return H
 
-def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all',precision=5):
+def H_173A(q_numbers,params,matrix_elements,symbolic=True,SO=0,E=0,B=0,M_values='all',precision=5):
     q_str = list(q_numbers)
     if symbolic:
         Ez,Bz = sy.symbols('Ez Bz')
@@ -161,11 +161,11 @@ def H_173A(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='all'
                 q_args = {**state_out,**state_in}
                 elements = {term: element(**q_args) for term, element in matrix_elements.items()}
                 H[i][j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO']+\
-                    params['h1/2Yb']*elements['IzLz_Yb'] + params['dYb']*elements['T2_2(IS)_Yb']+params['e2Qq0']*elements['T2_0(II)_Yb']+\
+                    params['h1/2Yb']*elements['IzLz_Yb'] - params['dYb']/2*elements['T2_2(IS)_Yb']+params['e2Qq0']*elements['T2_0(II)_Yb']+\
                     params['p+2q']*elements['Lambda-Doubling']
-                if M_values!='none':
-                    H[i][j]+=params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-                    Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']
+                # if M_values!='none':
+                #     H[i][j]+=params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+                #     Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']
                 # H[i][j] = round(H[i][j],precision)
 
 
@@ -247,7 +247,7 @@ def matmult(a,b):
 def matadd(a,b):
     return [[ele_a+ele_b for ele_a,ele_b in zip(row_a,row_b)] for row_a,row_b in zip(a,b)]
 
-def convert_ab(input_qnumbers,output_qnumbers,S=1/2):
+def convert_abBJ(input_qnumbers,output_qnumbers,S=1/2):
     input_keys = list(input_qnumbers)
     output_keys = list(output_qnumbers)
     input_size = len(input_qnumbers[input_keys[0]])
@@ -261,7 +261,24 @@ def convert_ab(input_qnumbers,output_qnumbers,S=1/2):
             else:
                 b_qnumbers = {q:output_qnumbers[q][i] for q in output_keys}
                 a_qnumbers = {q:input_qnumbers[q][j] for q in input_keys}
-            basis_matrix[i,j] = b2a_matrix_174(a_qnumbers,b_qnumbers,S=S)
+            basis_matrix[i,j] = b2a_matrix(a_qnumbers,b_qnumbers,S=S)
+    return basis_matrix
+
+def convert_bbBS(input_qnumbers,output_qnumbers,S=1/2,I=5/2):
+    input_keys = list(input_qnumbers)
+    output_keys = list(output_qnumbers)
+    input_size = len(input_qnumbers[input_keys[0]])
+    output_size = len(output_qnumbers[output_keys[0]])
+    basis_matrix = np.zeros((output_size,input_size))
+    for i in range(output_size):
+        for j in range(input_size):
+            if 'G' in input_keys: #Convert case (bBS) to (bBJ)
+                bBJ_qnumbers = {q:output_qnumbers[q][i] for q in output_keys}
+                bBS_qnumbers = {q:input_qnumbers[q][j] for q in input_keys}
+            else:
+                bBS_qnumbers = {q:output_qnumbers[q][i] for q in output_keys}
+                bBJ_qnumbers = {q:input_qnumbers[q][j] for q in input_keys}
+            basis_matrix[i,j] = bBS_2_bBJ_matrix(bBS_qnumbers,bBJ_qnumbers,S=S,I=I)
     return basis_matrix
 
 def decouple_b(input_qnumbers,output_qnumbers,S=1/2):

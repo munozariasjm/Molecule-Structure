@@ -499,23 +499,28 @@ class YbOHLevels(object):
         if new_case == current_case:
             print('Eigenvectors already in {} basis'.format(current_case))
             return evecs
-
         inputt = self.q_numbers
         output = self.alt_q_numbers[new_case]
-        if ('a' in new_case and 'b' in current_case) or ('b' in new_case and 'a' in current_case):
-            basis_matrix = self.library.basis_changers['a_b'](inputt,output)
+        if ('a' in new_case and 'bBJ' in current_case) or ('bBJ' in new_case and 'a' in current_case):
+            basis_matrix = self.library.basis_changers['a_bBJ'](inputt,output)
         elif ('decoupled' in new_case and 'b' in current_case):
             basis_matrix = self.library.basis_changers['b_decoupled'](inputt,output)
         elif ('decoupled' in new_case and 'a' in current_case):
             basis_matrix = self.library.basis_changers['a_decoupled'](inputt,output)
+        elif ('a' in new_case and 'bBS' in current_case) or ('bBS' in new_case and 'a' in current_case):
+            intermediate = self.alt_q_numbers['bBJ']
+            if 'bBS' in current_case:
+                basis_matrix = self.library.basis_changers['a_bBJ'](intermediate,output)@self.library.basis_changers['bBS_bBJ'](inputt,intermediate)
+            else:
+                basis_matrix = self.library.basis_changers['bBS_bBJ'](inputt,intermediate)@self.library.basis_changers['a_bBJ'](intermediate,output)
         converted_evecs = []
         for i in range(len(evecs)):
             converted_evecs.append(basis_matrix@evecs[i])
         converted_evecs = np.array(converted_evecs)
-        print('Successfully converted eigenvectprs from {} to {}'.format(current_case,new_case))
+        print('Successfully converted eigenvectors from {} to {}'.format(current_case,new_case))
         return converted_evecs
 
-    def gen_state_str(self,vector,basis=None,label_q=None,thresh=0.01,show_coeff=True,new_line=False,round=None):
+    def gen_state_str(self,vector_idx,basis=None,label_q=None,thresh=0.01,show_coeff=True,new_line=False,round=None):
         q_numbers = self.q_numbers
         label_q = self.q_str
         if round is None:
@@ -528,8 +533,10 @@ class YbOHLevels(object):
                 q_numbers = self.alt_q_numbers['aBJ']
                 label_q = list(self.alt_q_numbers['aBJ'])
         full_label = r''
+        vector = self.evecs0[vector_idx]
         nonzero_idx = np.nonzero(vector)[0]
         first = 0
+        i=0
         for i,index in enumerate(nonzero_idx):
             coeff = np.round(vector[index],round)
             if abs(coeff) < thresh:

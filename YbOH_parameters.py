@@ -38,20 +38,20 @@ params_174A000 = {
 }
 
 params_173X000 = { # all units MHz except for muE
-'Be': 7350.97,
+'Be': 7351.2,
 'Gamma_SR': -81.064,
-'bFYb': -1882.67,
-'cYb': -80.04,
+'bFYb': -1883.21,
+'cYb': -81.84,
 'bFH': 4.80,
 'cH': 2.46,
 'e2Qq0': -3318.7,
 }
 
 params_173X010 = { # all units MHz except for muE
-'Be': 7350.97,
+'Be': 7351.2,
 'Gamma_SR': -81.064,
-'bFYb': -1882.67,
-'cYb': -80.04,
+'bFYb': -1883.21,
+'cYb': -81.84,
 'bFH': 4.80,
 'cH': 2.46,
 'e2Qq0': -3318.7,
@@ -59,14 +59,14 @@ params_173X010 = { # all units MHz except for muE
 }
 
 params_173A000 = {
-'Be': 7353.01,
+'Be': 7590.3,
 'ASO': 4.047*10**7,
-'h1/2Yb': -138,
-'dYb': -265.3,
+'h1/2Yb': -126.5,
+'dYb': -261.7,
 'bFH': 0.07,     # extrapolated from YbF
 'cH': -0.18,     # extrapolated from YbF
-'e2Qq0': -1940,
-'p+2q': -13146
+'e2Qq0': -1925,
+'p+2q': -13144.6
 }
 
 

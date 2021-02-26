@@ -220,9 +220,9 @@ def q_numbers_174_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega
                                 values = [L,Sigma,Omega,J,F,M]
                             for q,val in zip(q_str,values):
                                 q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-    return q_numners
+    return q_numbers
 
-def q_numbers_173_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega_values=[1/2]):
+def q_numbers_173_aBJ(N_range,Lambda=1,S=1/2,I_list=[5/2,1/2],M_values='all',Omega_values=[1/2]):
     IYb=I_list[0]
     iH = I_list[-1]
     Nmin,Nmax=N_range[0],N_range[-1]
@@ -235,7 +235,6 @@ def q_numbers_173_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega
     q_numbers = {}
     for q in q_str:
         q_numbers[q] = []
-    I = max(IYb,iH)
     for J in np.arange(Jmin,Jmax+1,1):
         for F1 in np.arange(abs(J-IYb),abs(J+IYb)+1,1):
             for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):

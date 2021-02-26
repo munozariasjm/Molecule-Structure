@@ -42,11 +42,11 @@ class YbOH_Library(object):
         self.cases = self.collect_all_cases()
         self.H_builders = self.collect_all_H_builders()
         self.PTV_builders = self.collect_all_PTV_builders()
-        self.q_number_builders = self.collect_all_q_number_builders()
+        self.q_number_builders = self.collect_all_q_number_builders(I_spins)
         self.Lambda = self.collect_all_Lambda()
         self.basis_changers = self.collect_change_basis()
         self.TDM_builders = self.collect_TDM(I_spins,M_values)
-        self.alt_q_number_builders = self.collect_alt_q()
+        self.alt_q_number_builders = self.collect_alt_q(I_spins)
 
 
     def collect_all_cases(self):
@@ -91,7 +91,7 @@ class YbOH_Library(object):
 
         }
 
-        if M_values != 'None':
+        if M_values != 'none':
             ext_fields = {
             # External Fields
             'ZeemanZ': me.ZeemanZ_bBJ,         # Zeeman interaction with lab z magnetic field
@@ -124,7 +124,7 @@ class YbOH_Library(object):
         'StarkZ': me.StarkZ_bBS            # Stark interaction with lab z electric field
         }
 
-        if M_values != 'None':
+        if M_values != 'none':
             ext_fields = {
             # External Fields
             'ZeemanZ': me.ZeemanZ_bBS,         # Zeeman interaction with lab z magnetic field
@@ -153,7 +153,7 @@ class YbOH_Library(object):
         }
 
 
-        if M_values != 'None':
+        if M_values != 'none':
             ext_fields = {
             # External Fields
             'ZeemanLZ': me.ZeemanLZ_174_aBJ,
@@ -169,7 +169,8 @@ class YbOH_Library(object):
         aBJ_173A_matrix_elements={
         # Fine Structure
         'N^2': me.Rot_173_aBJ,                 # N^2 Rotation
-        'Lamdba-Doubling': me.LambdaDoubling_173_aBJ,
+        'SO': me.SO_173_aBJ,                    # Spin Orbit
+        'Lambda-Doubling': me.LambdaDoubling_173_aBJ,       #Lambda doubling
 
         # Yb Hypeerfine
         'IzLz_Yb': me.ILYb_173_aBJ,
@@ -188,7 +189,7 @@ class YbOH_Library(object):
         }
 
 
-        if M_values != 'None':
+        if M_values != 'none':
             ext_fields = {
             # External Fields
             'ZeemanLZ': me.ZeemanLZ_173_aBJ,
@@ -224,7 +225,7 @@ class YbOH_Library(object):
             H_builders[key] = partial(H_builders[key],params = self.parameters[key],matrix_elements = self.matrix_elements[key])
         return H_builders
 
-    def collect_all_q_number_builders(self):
+    def collect_all_q_number_builders(self,I_spins):
         q_number_builders = {
             '174X000': partial(qn.q_numbers_bBJ, Lambda=0),
             '174X010': partial(qn.q_numbers_bBJ, Lambda=1),
@@ -235,6 +236,8 @@ class YbOH_Library(object):
             '174aBJ': qn.q_numbers_174_aBJ,
             '174bBJ': qn.q_numbers_bBJ,
         }
+        for key,builder in q_number_builders.items():
+            q_number_builders[key] = partial(builder,I_list=I_spins)
         return q_number_builders
 
     def collect_all_PTV_builders(self):
@@ -248,12 +251,13 @@ class YbOH_Library(object):
 
     def collect_change_basis(self):
         all_change_basis = {
-            'a_b': ham.convert_ab,
-            'b_decoupled': ham.decouple_b
+            'a_bBJ': ham.convert_abBJ,
+            'b_decoupled': ham.decouple_b,
+            'bBS_bBJ': ham.convert_bbBS
         }
         return all_change_basis
 
-    def collect_TDM(self,M_values,I_spins):
+    def collect_TDM(self,I_spins,M_values):
         iH = I_spins[-1]
         IYb = I_spins[0]
         if M_values != 'none':
@@ -269,31 +273,34 @@ class YbOH_Library(object):
             return all_TDM
         return all_TDM
 
-    def collect_alt_q(self):
+    def collect_alt_q(self,I_spins):
         alt_q_builders = {
             '174X000': {
-                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=0),
-                'decoupled': partial(qn.q_numbers_decoupled, Lambda=0)
+                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=0,I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=0,I_list = I_spins)
                 },
             '174X010': {
-                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
-                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
+                'aBJ': partial(qn.q_numbers_174_aBJ, Lambda=1,Omega_values=[1/2,3/2],I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1,I_list = I_spins)
                 },
             '173X000': {
-                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=0),
-                'decoupled': partial(qn.q_numbers_decoupled,Lambda=0)
+                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=0,I_list = I_spins),
+                'bBJ': partial(qn.q_numbers_bBJ, Lambda=0,I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled,Lambda=0,I_list = I_spins)
             },
             '173X010': {
-                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2,3/2]),
-                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
+                'aBJ': partial(qn.q_numbers_173_aBJ, Lambda=1,Omega_values=[1/2,3/2],I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1,I_list = I_spins)
             },
             '174A000': {
-                'bBS': partial(qn.q_numbers_bBJ, Lambda=1),
-                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
+                'bBS': partial(qn.q_numbers_bBS, Lambda=1,I_list = I_spins),
+                'bBJ': partial(qn.q_numbers_bBJ, Lambda=1,I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1,I_list = I_spins)
             },
             '173A000': {
-                'bBS': partial(qn.q_numbers_bBS, Lambda=1),
-                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1)
+                'bBS': partial(qn.q_numbers_bBS, Lambda=1,I_list = I_spins),
+                'bBJ': partial(qn.q_numbers_bBJ, Lambda=1,I_list = I_spins),
+                'decoupled': partial(qn.q_numbers_decoupled, Lambda=1,I_list = I_spins)
             }
         }
         return alt_q_builders
