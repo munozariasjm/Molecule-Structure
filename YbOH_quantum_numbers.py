@@ -118,26 +118,25 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
 #########################   DEVELOPMENT  END   ###################################
 
 
-def q_numbers_bBJ(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
+def q_numbers_odd_bBJ(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
     IYb=I_list[0]
     iH = I_list[-1]
     Nmin,Nmax=N_range[0],N_range[-1]
     if Nmin<abs(Lambda):
         print('Nmin must be >= L')
         Nmin=abs(Lambda)
-    if IYb == 0 or iH == 0:
-        q_str = ['L','N','J','F','M']
-        I = max(IYb,iH)
-        q_numbers = {}
-        for q in q_str:
-            q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for F in np.arange(abs(J-I),abs(J+I)+1,1):
+    q_str = ['L','N','J','F1','F','M']
+    q_numbers = {}
+    for q in q_str:
+        q_numbers[q] = []
+    for N in np.arange(Nmin,Nmax+1,1):
+        for J in np.arange(abs(N-S),abs(N+S)+1,1):
+            for F1 in np.arange(abs(J-IYb),abs(J+IYb)+1,1):
+                for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
                     if M_values=='none':
                         for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
                             M=abs(F)%1
-                            values = [L,N,J,F,M]
+                            values = [L,N,J,F1,F,M]
                             for q,val in zip(q_str,values):
                                 q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
                     else:
@@ -147,38 +146,46 @@ def q_numbers_bBJ(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
                             Mmin = abs(F) % 1
                         for M in np.arange(Mmin,F+1,1):
                             for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
-                                values = [L,N,J,F,M]
-                                for q,val in zip(q_str,values):
-                                    q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-    else:
-        q_str = ['L','N','J','F1','F','M']
-        q_numbers = {}
-        for q in q_str:
-            q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for F1 in np.arange(abs(J-IYb),abs(J+IYb)+1,1):
-                    for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
-                        if M_values=='none':
-                            for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
-                                M=abs(F)%1
                                 values = [L,N,J,F1,F,M]
                                 for q,val in zip(q_str,values):
                                     q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-                        else:
-                            if M_values=='all':
-                                Mmin = -F
-                            elif M_values=='pos':
-                                Mmin = abs(F) % 1
-                            for M in np.arange(Mmin,F+1,1):
-                                for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
-                                    values = [L,N,J,F1,F,M]
-                                    for q,val in zip(q_str,values):
-                                        q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+    return q_numbers
+
+def q_numbers_even_bBJ(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
+    IYb=I_list[0]
+    iH = I_list[-1]
+    Nmin,Nmax=N_range[0],N_range[-1]
+    if Nmin<abs(Lambda):
+        print('Nmin must be >= L')
+        Nmin=abs(Lambda)
+    q_str = ['L','N','J','F','M']
+    I = max(IYb,iH)
+    q_numbers = {}
+    for q in q_str:
+        q_numbers[q] = []
+    for N in np.arange(Nmin,Nmax+1,1):
+        for J in np.arange(abs(N-S),abs(N+S)+1,1):
+            for F in np.arange(abs(J-I),abs(J+I)+1,1):
+                if M_values=='none':
+                    for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
+                        M=abs(F)%1
+                        values = [L,N,J,F,M]
+                        for q,val in zip(q_str,values):
+                            q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+                else:
+                    if M_values=='all':
+                        Mmin = -F
+                    elif M_values=='pos':
+                        Mmin = abs(F) % 1
+                    for M in np.arange(Mmin,F+1,1):
+                        for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
+                            values = [L,N,J,F,M]
+                            for q,val in zip(q_str,values):
+                                q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
     return q_numbers
 
 
-def q_numbers_174_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega_values=[1/2]):
+def q_numbers_even_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega_values=[1/2]):
     IYb=I_list[0]
     iH = I_list[-1]
     Nmin,Nmax=N_range[0],N_range[-1]
@@ -222,7 +229,7 @@ def q_numbers_174_aBJ(N_range,Lambda=1,S=1/2,I_list=[0,1/2],M_values='all',Omega
                                 q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
     return q_numbers
 
-def q_numbers_173_aBJ(N_range,Lambda=1,S=1/2,I_list=[5/2,1/2],M_values='all',Omega_values=[1/2]):
+def q_numbers_odd_aBJ(N_range,Lambda=1,S=1/2,I_list=[5/2,1/2],M_values='all',Omega_values=[1/2]):
     IYb=I_list[0]
     iH = I_list[-1]
     Nmin,Nmax=N_range[0],N_range[-1]

@@ -23,7 +23,7 @@ class YbOHLevels(object):
         if isotope not in ['170','171','172','173','174','176']:
             print(isotope, ' is not a valid isotope of Yb')
             return None
-        if isotope not in ['173','174']:
+        if isotope not in ['173','174','171']:
             print(isotope, ' is an isotope not yet supported by this code')
             return None
         if state not in ['X000','X010','A000']:
@@ -71,7 +71,10 @@ class YbOHLevels(object):
         self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,M_values=self.M_values,precision=self.round)
 
         # Find free field eigenvalues and eigenvectors
-        self.eigensystem(0,1e-4)
+        if self.M_values == 'all':
+            self.eigensystem(0,1e-6)
+        else:
+            self.eigensystem(0,0)
 
         # These attrbiutes will be used to store Zeeman and Stark information
         # Each index corresponds to a value of E or B.
@@ -90,11 +93,12 @@ class YbOHLevels(object):
         # Attributes used for evaluating PT violating shifts
         self.H_PTV = None
         self.PTV_E = None
+        self.PTV_B = None
         self.PTV0 = None
         self.PTV_type = None
 
 
-    def eigensystem(self,Ez_val,Bz_val,method='scipy_h',order=True, set_attr=True):
+    def eigensystem(self,Ez_val,Bz_val,method='scipy_h',order=True, set_attr=True, Normalize=False):
         if method == 'numpy':
             w,v = npLA.eig(0.5*(self.H_function(Ez_val, Bz_val)+np.transpose(self.H_function(Ez_val, Bz_val))))
         elif method == 'numpy_h':
@@ -105,8 +109,9 @@ class YbOHLevels(object):
             w,v, = sciLA.eigh(self.H_function(Ez_val, Bz_val))
         evals = np.real(w)
         evecs = np.array([np.round(np.real(v[:,i]),self.round) for i in range(len(w))])
-        for i,evec in enumerate(evecs):
-            evecs[i]/=evec@evec
+        if Normalize:
+            for i,evec in enumerate(evecs):
+                evecs[i]/=evec@evec
         if order:
             evals,evecs = order_eig(evals,evecs)
         if set_attr:
@@ -202,7 +207,7 @@ class YbOHLevels(object):
         PTV_shift = self.PTV_shift(EDM_or_MQM)
         return PTV_shift
 
-    def plot_evals_EB(self,E_or_B,kV_kG=False, GHz=False):
+    def plot_evals_EB(self,E_or_B,kV_kG=False, GHz=False,Freq=True):
         x_scale = {False: 1, True: 10**-3}[kV_kG]
         y_scale = {False: 1, True: 10**-3}[GHz]
 
@@ -278,7 +283,7 @@ class YbOHLevels(object):
     def PTV_Map(self,EDM_or_MQM,E_or_B='E',plot=False):
         if '174' in self.iso_state:
             self.PTV_type = 'EDM'
-            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)
+            H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)/self.e_spin
         elif '173' in self.iso_state:
             self.PTV_type = EDM_or_MQM
             H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
@@ -360,7 +365,7 @@ class YbOHLevels(object):
         field,shifts = {'E': [self.Ez,self.PTV_E], 'B':[self.Bz,self.PTV_B]}[E_or_B]
         shifts = shifts.T # change primary index from E field to eigenvector
 
-        y_label = 'Shift Energy (MHz)'
+        y_label = 'PTV Shift'
 
         state_str = {
             '174X000': r'$^{174}$YbOH $\tilde{X}(000)$',
@@ -491,7 +496,7 @@ class YbOHLevels(object):
         plt.ylabel('Energy (MHz)',fontsize=14)
         return
 
-    def convert_evecs(self,basis,evecs=None):
+    def convert_evecs(self,basis,evecs=None,Normalize=True):
         if evecs is None:
             evecs = self.evecs0
         current_case = self.hunds_case
@@ -517,6 +522,9 @@ class YbOHLevels(object):
         for i in range(len(evecs)):
             converted_evecs.append(basis_matrix@evecs[i])
         converted_evecs = np.array(converted_evecs)
+        if Normalize:
+            for i,evec in enumerate(converted_evecs):
+                converted_evecs[i]/=evec@evec
         print('Successfully converted eigenvectors from {} to {}'.format(current_case,new_case))
         return converted_evecs
 
@@ -570,23 +578,23 @@ class YbOHLevels(object):
                 full_label = r'$'+full_label[2:]
         return full_label
 
-def XA_branching_ratios(X,A,Ez,Bz): # must be in case a
+def XA_branching_ratios(X,A,Ez,Bz,Normalize=False): # must be in case a
     A.eigensystem(Ez,Bz)
     X.eigensystem(Ez,Bz)
-    X_evecs_a = X.convert_evecs('aBJ')
+    X_evecs_a = X.convert_evecs('aBJ',Normalize=Normalize)
     TDM_matrix = A.library.TDM_builders[A.iso_state](A.q_numbers,X.alt_q_numbers['aBJ'])
     BR_matrix = (X_evecs_a@TDM_matrix@A.evecs0.T)**2
     return BR_matrix
 
 
-def state_ordering(evecs_old,evecs_new,round=3):
+def state_ordering(evecs_old,evecs_new,round=4):
     overlap = abs(np.round(evecs_old@evecs_new.T,round))     #Essentially a matrix of the fidelities: |<phi|psi>|
     #calculate trace distance
-    for o in overlap:
-        for _o in o:
-            if (_o>1):
-                print('OVERLAP BIGGER THAN 1', _o)
-    trace_dist = np.sqrt(1-np.square(overlap))
+    # for o in overlap:
+    #     for _o in o:
+    #         if (_o>1):
+    #             print('OVERLAP BIGGER THAN 1', _o)
+    trace_dist = np.sqrt(abs(1-np.square(overlap)))
     ordering = np.array([trace_dist[i,:].argmin() for i in range(len(evecs_old))])
     return ordering
 

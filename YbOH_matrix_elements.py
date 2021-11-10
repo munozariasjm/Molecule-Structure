@@ -38,14 +38,18 @@ def decouple_b_174(dcpl,b,S=1/2,I=1/2): #dcpl = decoupled
             wigner_3j(b['J'],I,b['F'],M_J,dcpl['M_I'],-dcpl['M_F'])*wigner_3j(b['N'],S,b['J'],dcpl['M_N'],dcpl['M_S'],-M_J)
 
 def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2):
-    if not kronecker(bBS['F1'],bBJ['F1'])*kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['N'],bBJ['N'])*kronecker(bBS['F'],bBJ['F']) :
-        return 0
+    if 'F1' in bBJ.keys():
+        F = bBJ['F1']
+        if not kronecker(bBS['F1'],bBJ['F1'])*kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['N'],bBJ['N'])*kronecker(bBS['F'],bBJ['F']):
+            return 0
     else:
-        F = bBS['F1']
-        N = bBJ['N']
-        G = bBS['G']
-        J = bBJ['J']
-        return (-1)**(I+S+F+N)*np.sqrt((2*G+1)*(2*J+1))*wigner_6j(I,S,G,N,F,J)
+        F = bBJ['F']
+        if not kronecker(bBS['M'],bBJ['M'])*kronecker(bBS['N'],bBJ['N'])*kronecker(bBS['F'],bBJ['F']):
+            return 0
+    N = bBJ['N']
+    G = bBS['G']
+    J = bBJ['J']
+    return (-1)**(I+S+F+N)*np.sqrt((2*G+1)*(2*J+1))*wigner_6j(I,S,G,N,F,J)
 
 
 ########## Case bBJ ##############
@@ -72,7 +76,7 @@ def IS_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
             wigner_6j(I,J1,F0,J0,I,1)*wigner_6j(J0,S,N0,S,J1,1)
 
 def T2IS_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(F0,F1)*kronecker(M0,M1):
+    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(L0,L1):
         return 0
     else:
         return -np.sqrt(5/3)*(-1)**(3*F0-2*M0+I+J0+N0-L0)*np.sqrt((2*I+1)*(I+1)*I)*\
@@ -93,6 +97,13 @@ def Sz_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
         return 0
     else:
         return (-1)**(N1+N0+S+J0-L0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
+            wigner_6j(N1,S,J0,S,N0,1)*wigner_3j(N0,1,N1,-L0,0,L1)
+
+def NzSz_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(L0,L1):
+        return 0
+    else:
+        return L0*(-1)**(N1+N0+S+J0-L0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(N1,S,J0,S,N0,1)*wigner_3j(N0,1,N1,-L0,0,L1)
 
 def ZeemanZ_bBJ(L0,N0,J0,F0,M0,L1,N1,J1,F1,M1,S=1/2,I=1/2):
@@ -128,7 +139,7 @@ def Rot_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(G0,G1)*kronecker(N0,N1):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+2*G0)*N0*(N0+1)-L0**2
+        return (-1)**(-2*M0+2*iH+2*2*G0)*N0*(N0+1)-L0**2
 
 def SR_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(N0,N1):
@@ -136,6 +147,13 @@ def SR_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     else:
         return (-1)**(-2*M0+2*iH+3*F10+N1+G0+G1+I+S+1)*np.sqrt((2*G0+1)*(2*G1+1)*N0*(N0+1)*(2*N0+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(N1,G1,F10,G0,N0,1)*wigner_6j(S,G1,I,G0,S,1)
+
+def NzSz_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
+    if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(N0,N1):
+        return 0
+    else:
+        return L0*(-1)**(-2*M0+2*iH+2*F10+N1+G0+F10+N0-L0+G1+S+I+1)*np.sqrt((2*N0+1)*(2*N1+1)*(2*G0+1)*(2*G1+1))*\
+            wigner_6j(N1,G1,F10,G0,N0,1)*wigner_6j(S,G1,I,G0,S,1)*wigner_3j(N0,1,N1,-L0,0,L1)*np.sqrt(S*(S+1)*(2*S+1))
 
 def ISYb_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(N0,N1)*kronecker(G0,G1):
@@ -148,7 +166,7 @@ def T2ISYb_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(L0,L1):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+3*F10+N1+G0+N0-L0)*wigner_9j(G0,G1,2,I,I,1,S,S,1)*\
+        return (-1)**(-2*M0+2*iH+3*F10+N0+G1+N0-L0)*wigner_9j(G0,G1,2,I,I,1,S,S,1)*\
             np.sqrt((2*N0+1)*(2*N1+1)*5*(2*G0+1)*(2*G1+1)*I*(I+1)*(2*I+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(N1,G1,F10,G0,N0,2)*wigner_3j(N0,2,N1,-L0,0,L1)
 
@@ -156,7 +174,7 @@ def T2QYb_bBS(L0,N0,G0,F10,F0,M0,L1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(L0,L1):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+3*F10+N1+G0+N0-L0+G1+I+S+2)*np.sqrt((2*N0+1)*(2*N1+1)*(2*G0+1)*(2*G1+1))*\
+        return (-1)**(-2*M0+2*iH+3*F10+N0+G1+N0-L0+G1+I+S+2)*np.sqrt((2*N0+1)*(2*N1+1)*(2*G0+1)*(2*G1+1))*\
             I*(2*I-1)/np.sqrt(6)/wigner_3j(I,2,I,-I,0,I)*wigner_3j(N0,2,N1,-L0,0,L1)*\
             wigner_6j(N1,G1,F10,G0,N0,2)*wigner_6j(I,G1,S,G0,I,2)
 
@@ -247,6 +265,9 @@ def Rot_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2)
             2*(-1)**(J0-(Omega0)+S-Sigma0)*np.sqrt((2*J0+1)*J0*(J0+1)*(2*S+1)*S*(S+1))*\
             sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 
+            #Note: in N^2 formulation, you get -2*Omega*Sigma. Brown uses R^2 form which results in
+            #a term -Omega^2 - Sigma^2. You can show for us that Omega^2 + Sigma^2 = Lambda^2 + 2 Omega*Sigma
+
 def SO_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1):
         return 0
@@ -285,7 +306,7 @@ def T2IS_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2
             wigner_3j(J0,1,J1,-Omega0,-q,Omega1) for q in [-1,0,1]])
 
 def ZeemanLZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(L0,L1)*kronecker(Sigma0,Sigma1):
+    if not kronecker(L0,L1)*kronecker(Sigma0,Sigma1)*kronecker(M0,M1)*kronecker(Omega0,Omega1):
         return 0
     else:
         return L0*(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
@@ -293,7 +314,7 @@ def ZeemanLZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I
             (-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,0,Omega1)
 
 def ZeemanSZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(L0,L1):
+    if not kronecker(L0,L1)*kronecker(M0,M1):
         return 0
     else:
         return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
@@ -302,13 +323,13 @@ def ZeemanSZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I
             sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,0,1]])
 
 def ZeemanParityZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
-    if kronecker(L0,L1):
+    if kronecker(L0,L1)*(not kronecker(M0,M1)):
         return 0
     else:
-        return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
+        return (-1)*(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*\
             (-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
             np.sqrt((2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
-            sum([kronecker(L0,L1-2*q)*(-1)**(J0-Omega0+S-Sigma0)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
+            sum([kronecker(L1,L0-2*q)*(-1)**(J0-Omega0+S-Sigma0)*wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,-q,Sigma1) for q in [-1,1]])
 
 def StarkZ_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(L0,L1)*kronecker(Sigma0,Sigma1):
@@ -323,7 +344,7 @@ def LambdaDoubling_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S
         return 0
     else:
         return (-1)**(J0-Omega0+S-Sigma0+1)*np.sqrt((2*J0+1)*(J0+1)*J0*(2*S+1)*(S+1)*S)*\
-            sum([kronecker(L0,L1-2*q)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
+            sum([kronecker(L1,L0+2*q)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 
 def TransitionDipole_174_aBJ(L0,Sigma0,Omega0,J0,F0,M0,L1,Sigma1,Omega1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(Sigma0,Sigma1):
@@ -368,43 +389,46 @@ def SO_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2
         return L0*Sigma0
 
 def Rot_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
-    if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10,F11)*kronecker(M0,M1)*kronecker(J0,J1):
+    if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(F10,F11)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1):
         return 0
     else:
-        return kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1)*(J0*(J0+1)+S*(S+1)-2*Omega0*Sigma0)-\
+        return (J0*(J0+1)+S*(S+1)-Omega0**2 -Sigma0**2)-\
             2*(-1)**(J0-(Omega0)+S-Sigma0)*np.sqrt((2*J0+1)*J0*(J0+1)*(2*S+1)*S*(S+1))*\
             sum([wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 
 def ILYb_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
-    if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11):
+    if not kronecker(L0,L1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11)*kronecker(Sigma0,Sigma1)*kronecker(Omega0,Omega1):
         return 0
     else:
-        return L0*(-1)**(-2*M0+2*iH+2*F10+J1+I+F10)*wigner_6j(J1,I,F10,I,J0,1)*\
+        return L0*(-1)**(J1+I+F10)*wigner_6j(J1,I,F10,I,J0,1)*\
             (-1)**(J0-Omega0)*wigner_3j(J0,1,J1,-Omega0,0,Omega1)*\
             np.sqrt((2*J0+1)*(2*J1+1)*(2*I+1)*(I+1)*I)
 
+#Check derivation
 def T2q2_ISYb_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
-    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11)*(not kronecker(L0,L1)):
+    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+2*F10+J1+I+F10+J0-Omega0+S-Sigma0)*\
+        return (-1)**(J1+I+F10+J0-Omega0+S-Sigma0)*\
             wigner_6j(J1,I,F10,I,J0,1)*np.sqrt((2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1)*I*(I+1)*(2*I+1))*\
-            sum([kronecker(L0,L1-2*q)*wigner_3j(S,1,S,-Sigma0,q,Sigma1)*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in [-1,1]])
+            sum([(-1)**(q)*kronecker(L0,-L1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1) for q in [-1,1]])
 
+#Check derivation
 def T2q0_IYb_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
-    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11)*kronecker(L0,L1):
+    if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11)*kronecker(L0,L1)*kronecker(Omega0,Omega1)*kronecker(L0,L1)*kronecker(Sigma0,Sigma1):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+2*F10+J1+I+F10+J0-Omega0)*wigner_6j(J1,I,F10,I,J0,1)*\
-            wigner_3j(J0,2,J1,-Omega0,0,Omega1)*np.sqrt((2*J0+1)*(2*J1+1))*\
-            I*(2*I-1)/np.sqrt(6)/wigner_3j(I,2,I,-I,0,I)
+        return 1/4*(-1)**(J1+I+F10+J0-Omega0)*wigner_6j(J1,I,F10,I,J0,2)*\
+            wigner_3j(J0,2,J1,-Omega0,0,Omega1)*np.sqrt((2*J0+1)*(2*J1+1))/\
+            wigner_3j(I,2,I,-I,0,I)
 
+#Check derivation
 def LambdaDoubling_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(F10,F11)*kronecker(J0,J1)*(not kronecker(L0,L1)):
         return 0
     else:
         return (-1)**(J0-Omega0+S-Sigma0)*np.sqrt((2*J0+1)*(J0+1)*J0*(2*S+1)*(S+1)*S)*\
-            sum([kronecker(L1,L0-2*q)*wigner_3j(J0,1,J1,-Omega0,q,Omega1)*wigner_3j(S,1,S,-Sigma0,-q,Sigma1) for q in [-1,1]])
+            sum([kronecker(L0,L1-2*q)*wigner_3j(J0,1,J1,-Omega0,-q,Omega1)*wigner_3j(S,1,S,-Sigma0,q,Sigma1) for q in [-1,1]])
 
 
 def ZeemanLZ_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
@@ -467,14 +491,14 @@ def TransitionDipole_173_aBJ(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F
         return TDM_total
 
 def TransitionDipole_173_aBJ_noM(L0,Sigma0,Omega0,J0,F10,F0,M0,L1,Sigma1,Omega1,J1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
-    if not kronecker(Sigma0,Sigma1):
+    if not kronecker(Sigma0,Sigma1)*(not kronecker(L0,L1)):
         return 0
     elif not (kronecker(F0,F1) or kronecker(F0+1,F1) or kronecker(F0-1,F1)):
         return 0
     else:
-        TDM_total = 1/np.sqrt((2*F1+1))*sum([(-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        TDM_total = 1/np.sqrt(2*F1+1)*sum([(-1)**(F1+F10+iH+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
                         wigner_6j(F11,F1,iH,F0,F10,1)*(-1)**(F11+J0+I+1)*np.sqrt((2*F10+1)*(2*F11+1))*\
-                        wigner_6j(J1,F11,I,F10,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1)
+                        wigner_6j(J1,F11,I,F10,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1)\
                         for q in [-1,1]]) # Since L is changing, can only get q=+-1 transitions
         # TDM_plus = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,1,M1)*(-1)**(F1+J+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*\
         #     wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J0-Omega0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-Omega0,q,Omega1) for q in range(-1,2)])
