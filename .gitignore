@@ -2,3 +2,5 @@ Old Code
 .ipynb_checkpoints
 *.pyc
 __pycache__
+JSON_data
+*.zip
