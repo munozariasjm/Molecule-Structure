@@ -4,3 +4,11 @@ Old Code
 __pycache__
 JSON_data
 *.zip
+*.csv
+*.pdf
+*.json
+*.svg
+*.ipynb
+Yuiki_Stark
+Figures
+CaOH_Supplemental

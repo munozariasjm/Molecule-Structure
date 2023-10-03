@@ -53,7 +53,7 @@ class Molecule_Library(object):
         self.K = self.collect_all_K()
         self.basis_changers = self.collect_change_basis(I_spins)
         self.TDM_builders = self.collect_TDM()
-        self.alt_q_number_builders = self.collect_alt_q(I_spins)
+        self.alt_q_number_builders = self.collect_alt_q(I_spins,P_values)
         self.TDM_p_builders = self.collect_p_TDM()
         self.all_parity = self.collect_parity()
         self.TDM_p_forbidden_builders = self.collect_p_TDM_forbidden()
@@ -126,13 +126,16 @@ class Molecule_Library(object):
         'T2_0(I,S)': me.T2IS_bBJ,          # I S dipolar interaction
         'Iz': me.Iz_bBJ,                   # I.n projection of I on internuclear axis n
         'Sz': me.Sz_bBJ,                   # S.n projection of S on internuclear axis n
+        'T2_2(I,S)': me.T2ISq2_bBJ         # Anisotropic I.S dipolar
         }
 
         if M_values != 'none':
             ext_fields = {
             # External Fields
             'ZeemanZ': me.ZeemanZ_bBJ,         # Zeeman interaction with lab z magnetic field
-            'StarkZ': me.StarkZ_bBJ            # Stark interaction with lab z electric field
+            'StarkZ': me.StarkZ_bBJ,            # Stark interaction with lab z electric field
+            'ZeemanLZ': me.ZeemanLZ_bBJ,         # Including coupling to internuclear axis
+            'ZeemanIZ': me.ZeemanIZ_bBJ,        #Nuclear spin coupling
             }
             bBJ_even_X_matrix_elements.update(ext_fields)
         if self.trap:
@@ -346,7 +349,7 @@ class Molecule_Library(object):
                 # '40A010': ham.H_even_A
                 }
         for key in H_builders:
-            H_builders[key] = partial(H_builders[key],params = self.parameters[key],matrix_elements = self.matrix_elements[key])
+            H_builders[key] = partial(H_builders[key],matrix_elements = self.matrix_elements[key])
         return H_builders
 
     def collect_all_q_number_builders(self,I_spins,P_values):
@@ -402,6 +405,11 @@ class Molecule_Library(object):
             'bBS_bBJ': partial(ham.convert_bbBS,I=max(I_spins)),
             'recouple_J': partial(ham.recouple_J,I=max(I_spins)),
             'b_I_decoupled': partial(ham.decouple_b_I,I=max(I_spins)),
+            # 'A000_B010': partial(ham.build_operator,matrix_element = me.HRTSO_A000_B010),
+            # 'A000_uA010': partial(ham.build_operator,matrix_element = me.HRTSO_A000_uA010),
+            # 'A000_kA010': partial(ham.build_operator,matrix_element = me.HRTSO_A000_kA010),
+            # 'X010_vibronic': partial(ham.build_operator,matrix_element = me.convert_X010_vibronic),
+            # 'A000_vibronic': partial(ham.build_operator,matrix_element = me.convert_A000_vibronic)
         }
         return all_change_basis
 
@@ -433,7 +441,10 @@ class Molecule_Library(object):
         if self.M_values != 'none':
             if self.molecule == 'YbOH':
                 p_TDM = {
-                    '174A000': partial(ham.build_p_TDM_aBJ,TDM_matrix_element=partial(me.TDM_p_even_forbidden_aBJ,I=iH)),
+                    '174A000': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TDM_p_vibronic_aBJ,I=iH)),
+                    'uA010': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TDM_p_uA010_aBJ,I=iH)),
+                    'kA010': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TDM_p_kA010_aBJ,I=iH)),
+                    'B010': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TDM_p_B010_aBJ,I=iH)),
                 }
             if self.molecule == 'CaOH':
                 p_TDM = {}
@@ -476,14 +487,14 @@ class Molecule_Library(object):
         if self.M_values != 'none':
             if self.molecule == 'YbOH':
                 all_TDM = {
-                    '174A000': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TransitionDipole_even_aBJ_forbidden,I=iH)),
+                    '174A000': partial(ham.build_operator,matrix_element=partial(me.TransitionDipole_even_aBJ_vibronic,I=iH)),
                 }
             if self.molecule == 'CaOH':
                 all_TDM = {}
         else:
             if self.molecule == 'YbOH':
                 all_TDM = {
-                    '174A000': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TransitionDipole_even_aBJ_noM_forbidden,I=iH)),
+                    '174A000': partial(ham.build_TDM_aBJ_forbidden,TDM_matrix_element=partial(me.TransitionDipole_aBJ_vibronic_noM,I=iH)),
                 }
             if self.molecule == 'CaOH':
                 all_TDM = {
@@ -525,7 +536,7 @@ class Molecule_Library(object):
         if self.molecule=='YbOH':
             all_parity = {
                 '174X000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_bBJ,I=iH)),
-                '174X010': partial(ham.build_operator,matrix_element=partial(me.Parity_L_bBJ,I=iH)), #Should be Parity_l_bBJ tbh
+                '174X010': partial(ham.build_operator,matrix_element=partial(me.Parity_l_bBJ,I=iH)),
                 '171X000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_bBS,I=IM,iH=iH)),
                 '173X000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_bBS,I=IM,iH=iH)),
                 '171X010': partial(ham.build_operator,matrix_element=partial(me.Parity_l_bBS,I=IM,iH=iH)),
@@ -540,11 +551,11 @@ class Molecule_Library(object):
                 '40X010': partial(ham.build_operator,matrix_element=partial(me.Parity_l_bBJ,I=iH)),
                 '40B010': partial(ham.build_operator,matrix_element=partial(me.Parity_l_bBJ,I=iH)),
                 '40A000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_aBJ,I=iH)),
-                '40B000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_aBJ,I=iH))
+                '40B000': partial(ham.build_operator,matrix_element=partial(me.Parity_L_bBJ,I=iH))
             }
         return all_parity
 
-    def collect_alt_q(self,I_spins):
+    def collect_alt_q(self,I_spins,P_values):
         if self.molecule=='YbOH':
             alt_q_builders = {
                 '174X000': {
@@ -556,6 +567,7 @@ class Molecule_Library(object):
                     'decoupled': partial(qn.q_numbers_decoupled, K_mag=1,I_list = I_spins),
                     'recouple_J': partial(qn.q_numbers_decoupled_mJ, K_mag=1,I_list = I_spins),
                     'decouple_I': partial(qn.q_numbers_decoupled_mJ, K_mag=1,I_list = I_spins),
+                    'vibronic': partial(qn.q_numbers_vibronic_even_aBJ,l_mag=1,L_mag=0,I_list=I_spins,P_values=[1/2,3/2])
                     },
                 '173X000': {
                     'aBJ': partial(qn.q_numbers_odd_aBJ, K_mag=0,I_list = I_spins,P_values=[1/2]),
@@ -564,12 +576,17 @@ class Molecule_Library(object):
                     },
                 '173X010': {
                     'aBJ': partial(qn.q_numbers_odd_aBJ, K_mag=1,P_values=[1/2,3/2],I_list = I_spins),
+                    'bBJ': partial(qn.q_numbers_odd_bBJ, K_mag=1,I_list = I_spins),
                     'decoupled': partial(qn.q_numbers_decoupled, K_mag=1,I_list = I_spins)
                     },
                 '174A000': {
                     'bBS': partial(qn.q_numbers_bBS, K_mag=1,I_list = I_spins),
                     'bBJ': partial(qn.q_numbers_even_bBJ, K_mag=1,I_list = I_spins),
-                    'decoupled': partial(qn.q_numbers_decoupled, K_mag=1,I_list = I_spins)
+                    'decoupled': partial(qn.q_numbers_decoupled, K_mag=1,I_list = I_spins),
+                    # 'vibronic': partial(qn.q_numbers_vibronic_even_aBJ,l_mag=0,L_mag=1,I_list=I_spins,P_values=P_values),
+                    # 'uA010': partial(qn.q_numbers_vibronic_even_aBJ,l_mag=1,L_mag=1,Omega_values=[1/2], K_values=[0],I_list=I_spins,P_values=P_values),
+                    # 'kA010': partial(qn.q_numbers_vibronic_even_aBJ,l_mag=1,L_mag=1,Omega_values=[3/2], K_values=[0],I_list=I_spins,P_values=P_values),
+                    # 'B010': partial(qn.q_numbers_vibronic_even_aBJ,l_mag=1,L_mag=0,I_list=I_spins,P_values=P_values),
                     },
                 '173A000': {
                     'bBS': partial(qn.q_numbers_bBS, K_mag=1,I_list = I_spins),

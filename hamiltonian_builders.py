@@ -14,11 +14,11 @@ def H_even_X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='al
                 theta = sy.symbols('theta')
             else:
                 theta = theta_num
-            T00_E = -1/np.sqrt(3)*params['2/e0c']
-            T20_E = (3*sy.cos(theta)**2 - 1)/np.sqrt(6)*params['2/e0c']
-            T2p1_E = -(sy.sin(2*theta)/2)*params['2/e0c']
+            T00_E = -1/np.sqrt(3)*params['2_e0c']
+            T20_E = (3*sy.cos(theta)**2 - 1)/np.sqrt(6)*params['2_e0c']
+            T2p1_E = -(sy.sin(2*theta)/2)*params['2_e0c']
             T2m1_E = -T2p1_E
-            T22_E = (sy.sin(theta)**2)/2*params['2/e0c']
+            T22_E = (sy.sin(theta)**2)/2*params['2_e0c']
         size = len(q_numbers[q_str[0]])
         # Need to construct empty matrices to fill with matrix elements
         # Sympy does not like numpy arrays, so convert to list
@@ -40,15 +40,21 @@ def H_even_X(q_numbers,params,matrix_elements,symbolic=True,E=0,B=0,M_values='al
                 state_out = {q+'0':q_numbers[q][i] for q in q_str}
                 state_in = {q+'1':q_numbers[q][j] for q in q_str}
                 q_args = {**state_out,**state_in}
-                elements = {term: sy.N(element(**q_args)) for term, element in matrix_elements.items()}
+                elements = {term: float(element(**q_args)) for term, element in matrix_elements.items()}
                 # The Hamiltonian
                 H0[i][j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
                     params['bF']*elements['I.S'] + params['c']/3*np.sqrt(6)*elements['T2_0(I,S)']
+                if params.get('d') is not None:
+                    H0[i][j]+= -params['d']*elements['T2_2(I,S)']
                 if params.get('q_lD') is not None:
                     H0[i][j] += params['p_lD']*elements['l doubling p'] - params['q_lD']*elements['l doubling q'] -params['Gamma_SR']*elements['NzSz']+params['Gamma_Prime']*elements['NzSz'] #old: params['q_lD']/2*elements['l-doubling']
                     # H0[i][j] += -params['q_lD']/2*elements['l-doubling'] - params['Gamma_SR']*elements['NzSz']+params['Gamma_Prime']*elements['NzSz']
                 if M_values!='none':
                     V_B[i][j]+=params['g_S']*params['mu_B']*elements['ZeemanZ']
+                    if params.get('g_l') is not None:
+                        V_B[i][j]+= params['g_l']*params['mu_B']*elements['ZeemanLZ']
+                    if params.get('g_N') is not None:
+                        V_B[i][j]+= -params['g_N']*params['mu_N']*elements['ZeemanIZ']
                     V_E[i][j]+=-params['muE']*elements['StarkZ']
                 if M_values!='none' and trap:
                     V_trap[i][j]+= -1/4*(T00_E*(-elements['T0_azz']*params['azz'] + elements['T0_axxyy']*params['axxyy']))
@@ -274,9 +280,9 @@ def build_PTV_bBS(q_numbers,EDM_or_MQM,IM=5/2,iH=1/2):
             if EDM_or_MQM == 'EDM':
                 H_PTV[i,j] = -EDM*EDM_bBS(**q_args,I=IM,iH=iH)
             elif EDM_or_MQM == 'MQM':
-                H_PTV[i,j] = -Mzz/(2*5/2*(2*5/2-1))*(-2/3*np.sqrt(15))*MQM_bBS(**q_args,I=IM,iH=iH)
+                H_PTV[i,j] = Mzz/(2*5/2*(2*5/2-1))*(np.sqrt(5/3))*MQM_bBS(**q_args,I=IM,iH=iH)
             else:
-                H_PTV[i,j] = -Mzz/(2*5/2*(2*5/2-1))*(-2/3*np.sqrt(15))*MQM_bBS(**q_args,I=IM,iH=iH) -EDM*EDM_bBS(**q_args,I=IM,iH=iH)
+                H_PTV[i,j] = Mzz/(2*5/2*(2*5/2-1))*(np.sqrt(5/3))*MQM_bBS(**q_args,I=IM,iH=iH) -EDM*EDM_bBS(**q_args,I=IM,iH=iH)
     #         elif H_MQM==2:
     #             H1[i,j] = -Mzz/(2*5/2*(2*5/2-1))*2/3*np.sqrt(6)*T2QM_bBS(**q_args)
     #             H2[i,j] = EDM_bBS(**q_args)
@@ -326,7 +332,7 @@ def build_TDM_aBJ(q_in,q_out,TDM_matrix_element):
             H_TDM[i,j] = TDM_matrix_element(**q_args)
     return H_TDM
 
-def build_TDM_aBJ_forbidden(q_in,q_out,TDM_matrix_element,scale):
+def build_TDM_aBJ_forbidden(p,q_in,q_out,TDM_matrix_element):
     q_str_in = list(q_in)
     q_str_out = list(q_out)
     size_in = len(q_in[q_str_in[0]])
@@ -337,7 +343,7 @@ def build_TDM_aBJ_forbidden(q_in,q_out,TDM_matrix_element,scale):
             state_out = {q+'0':q_out[q][i] for q in q_out}
             state_in = {q+'1':q_in[q][j] for q in q_in}
             q_args = {**state_out,**state_in}
-            H_TDM[i,j] = TDM_matrix_element(scale,**q_args)
+            H_TDM[i,j] = TDM_matrix_element(p,**q_args)
     return H_TDM
 
 def matmult(a,b):
@@ -369,11 +375,11 @@ def convert_abBJ(input_qnumbers,output_qnumbers,S=1/2):
     return basis_matrix
 
 def tensor_matrix(theta,q_in,q_out,params,elements,rank=2):
-    T00_E = -1/np.sqrt(3)*params['2/e0c']
-    T20_E = (3*np.cos(theta)**2 - 1)/np.sqrt(6)*params['2/e0c']
-    T2p1_E = -(np.sin(2*theta)/2)*params['2/e0c']
+    T00_E = -1/np.sqrt(3)*params['2_e0c']
+    T20_E = (3*np.cos(theta)**2 - 1)/np.sqrt(6)*params['2_e0c']
+    T2p1_E = -(np.sin(2*theta)/2)*params['2_e0c']
     T2m1_E = -T2p1_E
-    T22_E = (np.sin(theta)**2)/2*params['2/e0c']
+    T22_E = (np.sin(theta)**2)/2*params['2_e0c']
     q_str_in = list(q_in)
     q_str_out = list(q_out)
     size_in = len(q_in[q_str_in[0]])

@@ -26,7 +26,7 @@ def recursive_add_J(J_list):
         return list_add_J(recursive_add_J(J_main),J_add)
 
 def base_add_J(J1,J2):
-    J_sum = np.arange(abs(J1-J2),J1+J2+1, 1)
+    J_sum = np.arange(abs(J1-J2),J1+J2+1, 1, dtype=np.float64)
     return J_sum
 
 def list_add_J(J1,J2): #J2 cannot be a list
@@ -52,7 +52,7 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
         print('Nmin must be >= L')
         Nmin=abs(Lambda)
     dim = 0
-    for N in np.arange(Nmin,Nmax+1,1):
+    for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
         dim+=count_momenta([N,S,*I_list],M_values)
     if Lambda != 0:
         dim*=2
@@ -63,9 +63,9 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
         for q in q_str:
             q_numbers[q] = np.zeros(dim)
         i=0
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for F in np.arange(abs(J-I),abs(J+I)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+                for F in np.arange(abs(J-I),abs(J+I)+1,1, dtype=np.float64):
                     if M_values=='none':
                         M=abs(F) % 1
                         for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
@@ -78,7 +78,7 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
                             Mmin = -F
                         elif M_values=='pos':
                             Mmin = abs(F) % 1
-                        for M in np.arange(Mmin,F+1,1):
+                        for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                             for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
                                 values = [L,N,J,F,M]
                                 for q,val in zip(q_str,values):
@@ -90,10 +90,10 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
         for q in q_str:
             q_numbers[q] = np.zeros(dim)
         i=0
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for F1 in np.arange(abs(J-IYb),abs(J+IYb)+1,1):
-                    for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+                for F1 in np.arange(abs(J-IYb),abs(J+IYb)+1,1, dtype=np.float64):
+                    for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1, dtype=np.float64):
                         if M_values=='none':
                             M=abs(F) % 1
                             for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
@@ -106,7 +106,7 @@ def q_numbers_bBJ_new(N_range,Lambda,S=1/2,I_list=[0,1/2],M_values='all'):
                                 Mmin = -F
                             elif M_values=='pos':
                                 Mmin = abs(F) % 1
-                            for M in np.arange(Mmin,F+1,1):
+                            for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                                 for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
                                     values = [L,N,J,F1,F,M]
                                     for q,val in zip(q_str,values):
@@ -130,10 +130,10 @@ def q_numbers_odd_bBJ(N_range,K_mag,S=1/2,I_list=[0,1/2],M_values='all',M_range=
     q_numbers = {}
     for q in q_str:
         q_numbers[q] = []
-    for N in np.arange(Nmin,Nmax+1,1):
-        for J in np.arange(abs(N-S),abs(N+S)+1,1):
-            for F1 in np.arange(abs(J-IM),abs(J+IM)+1,1):
-                for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
+    for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+        for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+            for F1 in np.arange(abs(J-IM),abs(J+IM)+1,1, dtype=np.float64):
+                for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1, dtype=np.float64):
                     if M_values=='none':
                         for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                             M=abs(F)%1
@@ -145,7 +145,7 @@ def q_numbers_odd_bBJ(N_range,K_mag,S=1/2,I_list=[0,1/2],M_values='all',M_range=
                             Mmin = -F
                         elif M_values=='pos':
                             Mmin = abs(F) % 1
-                        for M in np.arange(Mmin,F+1,1):
+                        for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                             if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
                                 for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                                     values = [K,N,J,F1,F,M]
@@ -161,6 +161,7 @@ def q_numbers_vibronic_even_bBJ(N_range,l_mag,L_mag,S=1/2,I_list=[0,1/2],M_value
     Nmin,Nmax=N_range[0],N_range[-1]
     if K_values == []:
         K_values = [l+L for l in [-l_mag,l_mag] for L in [-L_mag,L_mag]]
+    K_values = np.unique(K_values)
     K_min = abs(K_values).min()
     if Nmin<K_min:
         print('Nmin must be >= |Kmin|')
@@ -170,9 +171,9 @@ def q_numbers_vibronic_even_bBJ(N_range,l_mag,L_mag,S=1/2,I_list=[0,1/2],M_value
     q_numbers = {}
     for q in q_str:
         q_numbers[q] = []
-    for N in np.arange(Nmin,Nmax+1,1):
-        for J in np.arange(abs(N-S),abs(N+S)+1,1):
-            for F in np.arange(abs(J-I),abs(J+I)+1,1):
+    for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+        for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+            for F in np.arange(abs(J-I),abs(J+I)+1,1, dtype=np.float64):
                 for K in K_values:
                     if N < abs(K):
                         continue
@@ -193,7 +194,7 @@ def q_numbers_vibronic_even_bBJ(N_range,l_mag,L_mag,S=1/2,I_list=[0,1/2],M_value
                             Mmin = -F
                         elif M_values=='pos':
                             Mmin = abs(F) % 1
-                        for M in np.arange(Mmin,F+1,1):
+                        for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                             if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
                                 l_iter = {True:[0], False:[-l_mag,l_mag]}[l_mag==0]
                                 L_iter = {True:[0], False:[-L_mag,L_mag]}[L_mag==0]
@@ -222,9 +223,9 @@ def q_numbers_even_bBJ(N_range,K_mag,S=1/2,I_list=[0,1/2],M_values='all',M_range
     q_numbers = {}
     for q in q_str:
         q_numbers[q] = []
-    for N in np.arange(Nmin,Nmax+1,1):
-        for J in np.arange(abs(N-S),abs(N+S)+1,1):
-            for F in np.arange(abs(J-I),abs(J+I)+1,1):
+    for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+        for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+            for F in np.arange(abs(J-I),abs(J+I)+1,1, dtype=np.float64):
                 if M_values=='none':
                     for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                         M=abs(F)%1
@@ -236,7 +237,7 @@ def q_numbers_even_bBJ(N_range,K_mag,S=1/2,I_list=[0,1/2],M_values='all',M_range
                         Mmin = -F
                     elif M_values=='pos':
                         Mmin = abs(F) % 1
-                    for M in np.arange(Mmin,F+1,1):
+                    for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                         if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
                             for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                                 values = [K,N,J,F,M]
@@ -246,15 +247,28 @@ def q_numbers_even_bBJ(N_range,K_mag,S=1/2,I_list=[0,1/2],M_values='all',M_range
                             continue
     return q_numbers
 
-def q_numbers_vibronic_even_aBJ(N_range,l_mag,L_mag,S=1/2,I_list=[0,1/2],M_values='all',K_values = [],P_values=[1/2],M_range=[]):
+def q_numbers_vibronic_even_aBJ(N_range,l_mag=0,L_mag=1,K_values = [],Omega_values=[],P_values=[1/2],S=1/2,I_list=[0,1/2],M_values='all',M_range=[]): #Inputs need to be lists
     IM=I_list[0]
     iH = I_list[-1]
     Nmin,Nmax=N_range[0],N_range[-1]
     Jmin = abs(Nmin-S)
     Jmax = abs(Nmax+S)
+    if not all(isinstance(values, list) for values in [Omega_values,P_values,K_values]):
+        print('Inputs for composite projection angular momenta must be lists')
+        return
+    l_iter = {True:[0], False:[-l_mag,l_mag]}[l_mag==0]
+    L_iter = {True:[0], False:[-L_mag,L_mag]}[L_mag==0]
+    S_iter = {True:[0], False:[-S,S]}[S==0]
     if K_values == []:
-        K_values = [l+L for l in [-l_mag,l_mag] for L in [-L_mag,L_mag]]
-    K_min = abs(K_values).min()
+        K_values = [l+L for l in l_iter for L in L_iter]
+    if Omega_values == []:
+        Omega_values = [_S+L for _S in S_iter for L in L_iter]
+    if P_values == []:
+        P_values = [l+L+_S for l in l_iter for L in L_iter for _S in S_iter]
+    K_values = np.unique(np.abs(K_values))
+    Omega_values = np.unique(np.abs(Omega_values))
+    P_values = np.unique(np.abs(P_values))
+    K_min = K_values.min()
     if Nmin<K_min:
         print('Nmin must be >= |Kmin|')
         Nmin=K_min
@@ -263,42 +277,39 @@ def q_numbers_vibronic_even_aBJ(N_range,l_mag,L_mag,S=1/2,I_list=[0,1/2],M_value
     for q in q_str:
         q_numbers[q] = []
     I = max(IM,iH)
-    for J in np.arange(Jmin,Jmax+1,1):
-        for F in np.arange(abs(J-I),abs(J+I)+1,1):
-            for Sigma in np.arange(-abs(S),abs(S)+1,1)
-            if M_values=='none':
-                for Sigma in np.arange(-abs(S),abs(S)+1,1):
-                    for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
-                        P=K+Sigma
+    for J in np.arange(Jmin,Jmax+1,1, dtype=np.float64):
+        for F in np.arange(abs(J-I),abs(J+I)+1,1, dtype=np.float64):
+            for l in l_iter:
+                for L in L_iter:
+                    K = l+L
+                    if abs(K) not in K_values:
+                        continue
+                    for Sigma in S_iter:
+                        Omega = L+Sigma
+                        if abs(Omega) not in Omega_values:
+                            continue
+                        P = K+Sigma
                         if abs(P) not in P_values:
                             continue
-                        elif J < abs(P):
+                        if J < abs(P):
                             continue
-                        else:
+                        if M_values=='none':
                             M=abs(F)%1
-                            values = [K,Sigma,P,J,F,M]
-                        for q,val in zip(q_str,values):
-                            q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-            else:
-                if M_values=='all' or M_values=='custom':
-                    Mmin = -F
-                elif M_values=='pos':
-                    Mmin = abs(F) % 1
-                for M in np.arange(Mmin,F+1,1):
-                    if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
-                        for Sigma in np.arange(-abs(S),abs(S)+1,1):
-                            for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
-                                P=K+Sigma
-                                if abs(P) not in P_values:
+                            values = [l,L,K,Sigma,Omega,P,J,F,M]
+                            for q,val in zip(q_str,values):
+                                q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+                        else:
+                            if M_values=='all' or M_values=='custom':
+                                Mmin = -F
+                            elif M_values=='pos':
+                                Mmin = abs(F) % 1
+                            for M in np.arange(Mmin,F+1,1, dtype=np.float64):
+                                if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
+                                    values = [l,L,K,Sigma,Omega,P,J,F,M]
+                                    for q,val in zip(q_str,values):
+                                        q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+                                elif M_values=='custom' and M not in M_range:
                                     continue
-                                elif J < abs(P):
-                                    continue
-                                else:
-                                    values = [K,Sigma,P,J,F,M]
-                                for q,val in zip(q_str,values):
-                                    q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-                    elif M_values=='custom' and M not in M_range:
-                        continue
     return q_numbers
 
 
@@ -317,10 +328,10 @@ def q_numbers_even_aBJ(N_range,K_mag=1,S=1/2,I_list=[0,1/2],M_values='all',P_val
     for q in q_str:
         q_numbers[q] = []
     I = max(IM,iH)
-    for J in np.arange(Jmin,Jmax+1,1):
-        for F in np.arange(abs(J-I),abs(J+I)+1,1):
+    for J in np.arange(Jmin,Jmax+1,1, dtype=np.float64):
+        for F in np.arange(abs(J-I),abs(J+I)+1,1, dtype=np.float64):
             if M_values=='none':
-                for Sigma in np.arange(-abs(S),abs(S)+1,1):
+                for Sigma in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
                     for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                         P=K+Sigma
                         if abs(P) not in P_values:
@@ -337,9 +348,9 @@ def q_numbers_even_aBJ(N_range,K_mag=1,S=1/2,I_list=[0,1/2],M_values='all',P_val
                     Mmin = -F
                 elif M_values=='pos':
                     Mmin = abs(F) % 1
-                for M in np.arange(Mmin,F+1,1):
+                for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                     if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
-                        for Sigma in np.arange(-abs(S),abs(S)+1,1):
+                        for Sigma in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
                             for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                                 P=K+Sigma
                                 if abs(P) not in P_values:
@@ -368,11 +379,11 @@ def q_numbers_odd_aBJ(N_range,K_mag=1,S=1/2,I_list=[5/2,1/2],M_values='all',P_va
     q_numbers = {}
     for q in q_str:
         q_numbers[q] = []
-    for J in np.arange(Jmin,Jmax+1,1):
-        for F1 in np.arange(abs(J-IM),abs(J+IM)+1,1):
-            for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
+    for J in np.arange(Jmin,Jmax+1,1, dtype=np.float64):
+        for F1 in np.arange(abs(J-IM),abs(J+IM)+1,1, dtype=np.float64):
+            for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1, dtype=np.float64):
                 if M_values=='none':
-                    for Sigma in np.arange(-abs(S),abs(S)+1,1):
+                    for Sigma in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
                         for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                             P=K+Sigma
                             if abs(P) not in P_values:
@@ -387,9 +398,9 @@ def q_numbers_odd_aBJ(N_range,K_mag=1,S=1/2,I_list=[5/2,1/2],M_values='all',P_va
                         Mmin = -F
                     elif M_values=='pos':
                         Mmin = abs(F) % 1
-                    for M in np.arange(Mmin,F+1,1):
+                    for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                         if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
-                            for Sigma in np.arange(-abs(S),abs(S)+1,1):
+                            for Sigma in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
                                 for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                                     P=K+Sigma
                                     if abs(P) not in P_values:
@@ -419,10 +430,10 @@ def q_numbers_decoupled(N_range,K_mag=0, S=1/2, I_list=[0,1/2],M_values='all',M_
         q_numbers = {}
         for q in q_str:
             q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for M_N in np.arange(-abs(N),abs(N)+1,1):
-                for M_S in np.arange(-abs(S),abs(S)+1,1):
-                    for M_I in np.arange(-abs(I),abs(I)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for M_N in np.arange(-abs(N),abs(N)+1,1, dtype=np.float64):
+                for M_S in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
+                    for M_I in np.arange(-abs(I),abs(I)+1,1, dtype=np.float64):
                         M_F = M_N + M_S + M_I
                         if (M_values == 'pos' and M_F<0) or (M_values=='custom' and M_F not in M_range):
                             continue
@@ -436,11 +447,11 @@ def q_numbers_decoupled(N_range,K_mag=0, S=1/2, I_list=[0,1/2],M_values='all',M_
         q_numbers = {}
         for q in q_str:
             q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for M_N in np.arange(-abs(N),abs(N)+1,1):
-                for M_S in np.arange(-abs(S),abs(S)+1,1):
-                    for M_IM in np.arange(-abs(IM),abs(IM)+1,1):
-                        for M_iH in np.arange(-abs(iH),abs(iH)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for M_N in np.arange(-abs(N),abs(N)+1,1, dtype=np.float64):
+                for M_S in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
+                    for M_IM in np.arange(-abs(IM),abs(IM)+1,1, dtype=np.float64):
+                        for M_iH in np.arange(-abs(iH),abs(iH)+1,1, dtype=np.float64):
                             M_F = M_N + M_S + M_IM + M_iH
                             if (M_values=='pos' and M_F<0) or (M_values=='custom' and M_F not in M_range):
                                 continue
@@ -470,10 +481,10 @@ def q_numbers_decoupled_mJ(N_range,K_mag=0, S=1/2, I_list=[0,1/2],M_values='all'
         q_numbers = {}
         for q in q_str:
             q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for M_J in np.arange(-abs(J),abs(J)+1,1):
-                    for M_I in np.arange(-abs(I),abs(I)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+                for M_J in np.arange(-abs(J),abs(J)+1,1, dtype=np.float64):
+                    for M_I in np.arange(-abs(I),abs(I)+1,1, dtype=np.float64):
                         M_F = M_J + M_I
                         if (M_values == 'pos' and M_F<0) or (M_values=='custom' and M_F not in M_range):
                             continue
@@ -487,11 +498,11 @@ def q_numbers_decoupled_mJ(N_range,K_mag=0, S=1/2, I_list=[0,1/2],M_values='all'
         q_numbers = {}
         for q in q_str:
             q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for J in np.arange(abs(N-S),abs(N+S)+1,1):
-                for M_J in np.arange(-abs(J),abs(J)+1,1):
-                    for M_IM in np.arange(-abs(IM),abs(IM)+1,1):
-                        for M_iH in np.arange(-abs(iH),abs(iH)+1,1):
+        for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+            for J in np.arange(abs(N-S),abs(N+S)+1,1, dtype=np.float64):
+                for M_J in np.arange(-abs(J),abs(J)+1,1, dtype=np.float64):
+                    for M_IM in np.arange(-abs(IM),abs(IM)+1,1, dtype=np.float64):
+                        for M_iH in np.arange(-abs(iH),abs(iH)+1,1, dtype=np.float64):
                                 M_F = M_J + M_IM + M_iH
                                 if (M_values=='pos' and M_F<0) or (M_values=='custom' and M_F not in M_range):
                                     continue
@@ -505,6 +516,9 @@ def q_numbers_decoupled_mJ(N_range,K_mag=0, S=1/2, I_list=[0,1/2],M_values='all'
 def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]):
     IM=I_list[0]
     iH = I_list[-1]
+    if IM==0 and iH!=0:
+        IM=iH
+        iH=0
     Nmin,Nmax=N_range[0],N_range[-1]
     K_mag = abs(K_mag)
     if Nmin<K_mag:
@@ -518,9 +532,9 @@ def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]
     #     q_numbers = {}
     #     for q in q_str:
     #         q_numbers[q] = []
-    #     for N in np.arange(Nmin,Nmax+1,1):
-    #         for G in np.arange(abs(I-S),abs(I+S)+1,1):
-    #             for F in np.arange(abs(G-N),abs(G+N)+1,1):
+    #     for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+    #         for G in np.arange(abs(I-S),abs(I+S)+1,1, dtype=np.float64):
+    #             for F in np.arange(abs(G-N),abs(G+N)+1,1, dtype=np.float64):
     #                 if M_values=='none':
     #                     for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
     #                         M=abs(F)%1
@@ -532,55 +546,25 @@ def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]
     #                         Mmin = -F
     #                     elif M_values=='pos':
     #                         Mmin = abs(F) % 1
-    #                     for M in np.arange(Mmin,F+1,1):
+    #                     for M in np.arange(Mmin,F+1,1, dtype=np.float64):
     #                         for L in {True:[0], False:[-Lambda,Lambda]}[Lambda==0]:
     #                             values = [L,N,G,F,M]
     #                             for q,val in zip(q_str,values):
     #                                 q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
     # else:
-    if 0 not in I_list:
-        q_str = ['K','N','G','F1','F','M']
-        q_numbers = {}
-        for q in q_str:
-            q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for G in np.arange(abs(IM-S),abs(IM+S)+1,1):
-                for F1 in np.arange(abs(G-N),abs(G+N)+1,1):
-                    for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1):
-                        if M_values=='none':
-                            M= abs(F) % 1
-                            for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
-                                M=abs(F)%1
-                                values = [K,N,G,F1,F,M]
-                                for q,val in zip(q_str,values):
-                                    q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-                        else:
-                            if M_values=='all' or M_values=='custom':
-                                Mmin = -F
-                            elif M_values=='pos':
-                                Mmin = abs(F) % 1
-                            for M in np.arange(Mmin,F+1,1):
-                                if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
-                                    for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
-                                        values = [K,N,G,F1,F,M]
-                                        for q,val in zip(q_str,values):
-                                            q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
-                                elif M_values=='custom' and M not in M_range:
-                                    continue
-    else:
-        I = max(I_list)
-        q_str = ['K','N','G','F','M']
-        q_numbers = {}
-        for q in q_str:
-            q_numbers[q] = []
-        for N in np.arange(Nmin,Nmax+1,1):
-            for G in np.arange(abs(I-S),abs(I+S)+1,1):
-                for F in np.arange(abs(G-N),abs(G+N)+1,1):
+    q_str = ['K','N','G','F1','F','M']
+    q_numbers = {}
+    for q in q_str:
+        q_numbers[q] = []
+    for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+        for G in np.arange(abs(IM-S),abs(IM+S)+1,1, dtype=np.float64):
+            for F1 in np.arange(abs(G-N),abs(G+N)+1,1, dtype=np.float64):
+                for F in np.arange(abs(F1-iH),abs(F1+iH)+1,1, dtype=np.float64):
                     if M_values=='none':
                         M= abs(F) % 1
                         for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
                             M=abs(F)%1
-                            values = [K,N,G,F,M]
+                            values = [K,N,G,F1,F,M]
                             for q,val in zip(q_str,values):
                                 q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
                     else:
@@ -588,14 +572,43 @@ def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]
                             Mmin = -F
                         elif M_values=='pos':
                             Mmin = abs(F) % 1
-                        for M in np.arange(Mmin,F+1,1):
+                        for M in np.arange(Mmin,F+1,1, dtype=np.float64):
                             if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
                                 for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
-                                    values = [K,N,G,F,M]
+                                    values = [K,N,G,F1,F,M]
                                     for q,val in zip(q_str,values):
                                         q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
                             elif M_values=='custom' and M not in M_range:
                                 continue
+    # else:
+    #     I = max(I_list)
+    #     q_str = ['K','N','G','F','M']
+    #     q_numbers = {}
+    #     for q in q_str:
+    #         q_numbers[q] = []
+    #     for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+    #         for G in np.arange(abs(I-S),abs(I+S)+1,1, dtype=np.float64):
+    #             for F in np.arange(abs(G-N),abs(G+N)+1,1, dtype=np.float64):
+    #                 if M_values=='none':
+    #                     M= abs(F) % 1
+    #                     for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
+    #                         M=abs(F)%1
+    #                         values = [K,N,G,F,M]
+    #                         for q,val in zip(q_str,values):
+    #                             q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+    #                 else:
+    #                     if M_values=='all' or M_values=='custom':
+    #                         Mmin = -F
+    #                     elif M_values=='pos':
+    #                         Mmin = abs(F) % 1
+    #                     for M in np.arange(Mmin,F+1,1, dtype=np.float64):
+    #                         if (M_values=='custom' and M in M_range) or (M_values=='all') or (M_values=='pos'):
+    #                             for K in {True:[0], False:[-K_mag,K_mag]}[K_mag==0]:
+    #                                 values = [K,N,G,F,M]
+    #                                 for q,val in zip(q_str,values):
+    #                                     q_numbers[q].append(val+0)    #looks weird but adding 0 converts -0 to 0
+    #                         elif M_values=='custom' and M not in M_range:
+    #                             continue
     return q_numbers
 
 #
@@ -612,12 +625,12 @@ def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]
 #         for q in q_str:
 #             q_numbers[q] = []
 #         if Lambda==0:
-#             for L in range(1):
-#                 for N in np.arange(Nmin,Nmax+1,1):
-#                     for M_N in np.arange(-abs(N),abs(N)+1,1):
-#                         for M_S in np.arange(-abs(S),abs(S)+1,1):
-#                             for M_I in np.arange(-abs(I),abs(I)+1,1):
-#                                 for M_iH in np.arange(-abs(iH),abs(iH)+1,1):
+#             for L in range(1, dtype=np.float64):
+#                 for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+#                     for M_N in np.arange(-abs(N),abs(N)+1,1, dtype=np.float64):
+#                         for M_S in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
+#                             for M_I in np.arange(-abs(I),abs(I)+1,1, dtype=np.float64):
+#                                 for M_iH in np.arange(-abs(iH),abs(iH)+1,1, dtype=np.float64):
 #                                     M_F = M_N + M_S + M_I+ M_iH
 #                                     if (M_values!='all' and M_F<0):
 #                                         continue
@@ -629,11 +642,11 @@ def q_numbers_bBS(N_range,K_mag,S=1/2,I_list=[5/2,1/2],M_values='all',M_range=[]
 #             if Nmin<abs(Lambda):
 #                 print('Nmin must be >= L')
 #                 Nmin=abs(Lambda)
-#             for N in np.arange(Nmin,Nmax+1,1):
-#                 for M_N in np.arange(-abs(N),abs(N)+1,1):
-#                     for M_S in np.arange(-abs(S),abs(S)+1,1):
-#                         for M_I in np.arange(-abs(I),abs(I)+1,1):
-#                             for M_iH in np.arange(-abs(iH),abs(iH)+1,1):
+#             for N in np.arange(Nmin,Nmax+1,1, dtype=np.float64):
+#                 for M_N in np.arange(-abs(N),abs(N)+1,1, dtype=np.float64):
+#                     for M_S in np.arange(-abs(S),abs(S)+1,1, dtype=np.float64):
+#                         for M_I in np.arange(-abs(I),abs(I)+1,1, dtype=np.float64):
+#                             for M_iH in np.arange(-abs(iH),abs(iH)+1,1, dtype=np.float64):
 #                                 M_F = M_N + M_S + M_I+ M_iH
 #                                 if (M_values!='all' and M_F<0):
 #                                     continue

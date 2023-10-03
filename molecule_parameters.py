@@ -6,7 +6,8 @@ params_general = {
 'mu_B': 1.399624494, #MHz/Gauss
 'g_S': 2.0023,
 'g_L': 1,
-'2/e0c': 2*3.76730314*10**(10),# (V/cm)^2/(W/um^2)
+'2_e0c': 2*3.76730314*10**(10),# (V/cm)^2/(W/um^2)
+'mu_N': 7.62259323*10**(-4), #MHz/Gauss
 }
 
 
@@ -23,7 +24,7 @@ params_174X000 = {
 'muE': 1.9*0.503412 #Debye in MHz/(V/cm)
 }
 
-# { #YbF
+# params_174X000 = { #YbF
 # 'Be': 7233.8271,
 # 'Gamma_SR': -13.41679,
 # 'bF': 170.26374,
@@ -31,30 +32,47 @@ params_174X000 = {
 # 'muE': 3.91*0.503412 #Debye in MHz/(V/cm)
 # }
 
+# params_174X010 = {
+# 'Be': 7328.48,
+# 'Gamma_SR': -87.69,
+# 'Gamma_Prime': 0,
+# 'bF': 4.80,
+# 'c': 2.46,
+# 'b': (4.80-2.46/3),
+# 'q_lD': 12.20, #Should be minus if neg parity lower and parity is (-1)^(J-l-S), but for modeling I treat this as positive for now....
+# 'p_lD': 12.09,
+# 'muE': 2.15*0.503412,
+# #Origin 319.909053
+# }
+
+#With gamma prime
 params_174X010 = {
-'Be': 7327.708,
-'Gamma_SR': -93.593,
-'Gamma_Prime': 0,
-'bF': 4.80,
-'c': 2.46,
-'b': (4.80-2.46/3),
-'q_lD': 14.7525, #Should be minus if neg parity lower and parity is (-1)^(J-l-S), but for modeling I treat this as positive for now....
-'p_lD': 0,
-'muE': 2.11*0.503412,
+'Be': 7328.644,
+'Gamma_SR': -88.660,
+'Gamma_Prime': 17.38, #optical 15.61,detuned raman 17.38
+'bF': 4.08, #4.07 splitting fit, 4.08 combined fit
+'c': 3.41, #3.49 splitting fit, 3.41 combined fit
+'q_lD': -12.03, #Should be minus if neg parity lower and parity is (-1)^(J-l-S), but for modeling I treat this as positive for now....
+'p_lD': -11.30, #optical -10.73, detuned raman -11.30
+'muE': 2.15*0.503412,
+'Origin': 319.90901,
+'g_l': 0.0,
+'g_S':2.07,
 }
 
 params_174A000 = {
 'Be': 7586.3+2*0.006952*0,
 'ASO': 4.04719818*10**7, #Fixed from 1350 cm^-1
-'a': 0,         # extrapolated from YbF
+'a': 0.01,         # extrapolated from YbF
 'bF': 0.06985,     # extrapolated from YbF
 'c': 0.1799,     # extrapolated from YbF
 'p+2q': -13133-0.1139*0,
 'q':0,
 'D': 0.006952,
-'p2q_D':0.1139,
-'g_lp': -0.865,
-'muE': 0.43*0.503412
+'p2q_D': 0.1139,
+'g_lp': -0.724,#-0.865,
+'muE': 0.43*0.503412,
+'g_S': 1.86,
 }
 
 params_173X000 = { # all units MHz except for muE
@@ -102,7 +120,7 @@ params_173X010 = { # all units MHz except for muE
 'cH': 2.46,
 'e2Qq0': -3318.7,
 'q_lD': -14.752,
-'muE': 1.09*0.503412 #Debye in MHz/(V/cm)
+'muE': 2.12*0.503412 #Debye in MHz/(V/cm)
 }
 
 params_173A000 = {
@@ -141,7 +159,8 @@ params_40X000 = {
 'bF': 2.602,
 'c': 2.053,
 'b': (2.602-2.053/3),
-'muE': 1.465*0.503412 #Debye in MHz/(V/cm)
+'muE': 1.465*0.503412, #Debye in MHz/(V/cm)
+# 'g_N': 5.253736,
 }
 
 #Whenever possible, constants are taken from Fletcher et all, Milimeter Wave Hydroxide paper
@@ -167,13 +186,14 @@ params_40X010 = {
 'D': 0.008823,
 'Gamma_SR': 35.5,
 'Gamma_Prime': 0,
-'bF': 2.294,#2.247, #2.293,#2.2445, #2.602
-'c': 2.524,#2.601,#2.522,##2.6074, #2.053
+'bF': 2.45,#2.247, #2.293,#2.2445, #2.602
+'c': 2.6,#2.601,#2.522,##2.6074, #2.053
 # 'b': (2.29-2.52/3),
 'p_lD': -0.00,
 'q_lD': -21.53,
 # 'q_lD_D': 6.4*10**-5,
 'muE': 1.465*0.503412,
+# 'g_N': 5.253736,
 'azz': 3.5555*10**(-8), #From Lan for X(000)
 'axxyy': 1.1718*10**(-7) #From Lan for X(000)
 # 'azz': 3.33441*10**(-8)*5.525**2/25.875, #Calc from Lan's static #Debye^2/MHz in units of MHz/(V/cm)^2. Using Lan values
@@ -203,22 +223,22 @@ params_40B000 = {
 }
 
 YbOH_params = {
-'174X000':{**params_174X000,**params_general},
-'174X010':{**params_174X010,**params_general},
-'173X000':{**params_173X000,**params_general},
-'173X010':{**params_173X010,**params_general},
-'174A000':{**params_174A000,**params_general},
-'173A000':{**params_173A000,**params_general},
-'171A000':{**params_171A000,**params_general},
-'171X000':{**params_171X000,**params_general},
-'171X010':{**params_171X010,**params_general},
+'174X000':{**params_general,**params_174X000},
+'174X010':{**params_general,**params_174X010},
+'173X000':{**params_general,**params_173X000},
+'173X010':{**params_general,**params_173X010},
+'174A000':{**params_general,**params_174A000},
+'173A000':{**params_general,**params_173A000},
+'171A000':{**params_general,**params_171A000},
+'171X000':{**params_general,**params_171X000},
+'171X010':{**params_general,**params_171X010},
 }
 
 CaOH_params = {
-'40X000':{**params_40X000,**params_general},
-'40X010':{**params_40X010,**params_general},
-'40A000':{**params_40A000,**params_general},
-'40B000':{**params_40B000,**params_general},
+'40X000':{**params_general,**params_40X000},
+'40X010':{**params_general,**params_40X010},
+'40A000':{**params_general,**params_40A000},
+'40B000':{**params_general,**params_40B000},
 }
 
 all_params = {

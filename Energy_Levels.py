@@ -10,6 +10,7 @@ from functools import partial
 from time import perf_counter
 import torch
 from hamiltonian_builders import tensor_matrix
+from fractions import Fraction
 
 class MoleculeLevels(object):
 
@@ -64,7 +65,7 @@ class MoleculeLevels(object):
             'M_range': M_range,
             'P_values': P_values,
             'trap': trap,
-            'theta_num':theta_num
+            'theta_num':theta_num,
         }
         return cls(**properties)
 
@@ -86,16 +87,16 @@ class MoleculeLevels(object):
         self.q_str = list(self.q_numbers)
 
         # Create quantum numbers for alternate bases, like decoupled basis
-        self.alt_q_numbers = {basis: q_builder(self.N_range,M_values = self.M_values,M_range=self.M_range)
+        self.alt_q_numbers = {basis: q_builder(self.N_range,M_values = self.M_values,M_range=self.M_range,I_list=self.I_spins)
             for basis,q_builder in self.library.alt_q_number_builders[self.iso_state].items()}
 
         # Create Hamiltonian.
         # H_function is a function that takes (E,B) values as an argument, and returns a numpy matrix
         # H_symbolic is a symbolic sympy matrix of the Hamiltonian
         if self.trap:
-            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,M_values=self.M_values,precision=self.round,theta_num=self.theta_num)
+            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,params=self.parameters,M_values=self.M_values,precision=self.round,theta_num=self.theta_num)
         else:
-            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,M_values=self.M_values,precision=self.round)
+            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,params=self.parameters,M_values=self.M_values,precision=self.round)
         self.I_trap = 0
         if self.theta_num is None:
             self.theta_trap=0
@@ -134,8 +135,34 @@ class MoleculeLevels(object):
 
         self.state_str =  r'$^{{{iso}}}${mol} $\tilde{{{state}}}({vib})$'.format(iso=self.isotope,mol=self.molecule,state = self.state[:1],vib=self.state[1:])
 
+    def update_params(self,update_dict,recompute=True):
+        if update_dict is None:
+            self.parameters = self.library.parameters[self.iso_state]
+            # print('parameters reset')
+        else:
+            for param in update_dict:
+                if param not in self.parameters:
+                    print('{} not in parameter dict'.format(param))
+                else:
+                    new_params = deepcopy(self.parameters)
+                    new_params[param] = update_dict[param]
+                    self.parameters = new_params
+        if self.trap:
+            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,params=self.parameters,M_values=self.M_values,precision=self.round,theta_num=self.theta_num)
+        else:
+            self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](self.q_numbers,params=self.parameters,M_values=self.M_values,precision=self.round)
+        # Find free field eigenvalues and eigenvectors
+        if recompute:
+            if self.M_values == 'all' or self.M_values == 'pos':
+                self.eigensystem(0,1e-6)
+            else:
+                self.eigensystem(0,0)
+            self.Parity_mat = self.library.all_parity[self.iso_state](self.q_numbers,self.q_numbers)
+            self.generate_parities(self.evecs0)
+        return
 
-    def eigensystem(self,Ez_val,Bz_val,method='torch',order=True, set_attr=True, Normalize=False,disable_trap=False,angle=None):
+
+    def eigensystem(self,Ez_val,Bz_val,method='torch',order=True, set_attr=True, Normalize=False,disable_trap=False,angle=None, chop=None):
         if angle is not None:
             self.theta_trap = angle
         if self.trap and not disable_trap:
@@ -144,6 +171,8 @@ class MoleculeLevels(object):
             evals,evecs = diagonalize(self.H_function(Ez_val,Bz_val,self.I_trap,self.theta_trap),method=method,order=order, Normalize=Normalize,round=self.round)
         else:
             evals,evecs = diagonalize(self.H_function(Ez_val,Bz_val),method=method,order=order, Normalize=Normalize,round=self.round)
+        if chop is not None:
+            evecs[abs(evecs) < chop]=0
         if set_attr:
             self.evals0,self.evecs0 = [evals,evecs]
             self.E0,self.B0 = [Ez_val, Bz_val]
@@ -308,6 +337,12 @@ class MoleculeLevels(object):
         else:
             return self.g_eff_evecs(*self.eigensystem(Ez,Bz),Ez,Bz,step=step)
 
+    def D_eff_EB(self,Ez,Bz,step=1e-7):
+        if Ez == self.E0 and Bz == self.B0:
+            return self.D_eff_evecs(self.evals0,self.evecs0,Ez,Bz,step=step)
+        else:
+            return self.D_eff_evecs(*self.eigensystem(Ez,Bz),Ez,Bz,step=step)
+
     def g_eff_evecs(self,evals,evecs,Ez,Bz,step=1e-7):
         evals0,evecs0 = evals,evecs
         evals1,evecs1 = self.eigensystem(Ez,Bz+step,set_attr=False)
@@ -321,6 +356,20 @@ class MoleculeLevels(object):
             g_eff.append((E1-E0)/(step*self.parameters['mu_B']))
         g_eff = np.array(g_eff)
         return g_eff
+
+    def D_eff_evecs(self,evals,evecs,Ez,Bz,step=1e-7):
+        evals0,evecs0 = evals,evecs
+        evals1,evecs1 = self.eigensystem(Ez+step,Bz,set_attr=False)
+        order = state_ordering(evecs0,evecs1,round=self.round)
+        # evecs1_ordered = evecs1[order,:]
+        evals1_ordered = evals1[order]
+        # sgn = np.sign(np.diag(evecs1_ordered@evecs0.T))
+        # evecs1_ordered = (evecs1_ordered.T*sgn).T
+        D_eff = []
+        for E0,E1 in zip(evals0,evals1_ordered):
+            D_eff.append((E1-E0)/(step*self.parameters['muE']))
+        D_eff = np.array(D_eff)
+        return D_eff
 
 #Is this redundant?
     # def g_eff_EB(self,Ez,Bz,step=1e-7):
@@ -573,7 +622,7 @@ class MoleculeLevels(object):
         idx_filtered=np.array(idx_filtered)
         return idx_filtered
 
-    def display_levels(self,Ez,Bz,pattern_q,idx = None,label=True,label_off = 0.03,parity=False,label_q =None,width=0.75,figsize=(10,10),ylim=None, deltaE_label = 3000,alt_label=False):
+    def display_levels(self,Ez,Bz,pattern_q,idx = None,label=True,label_off = 0.03,parity=False,pretty=True,thickness=1.5,label_q =None,width=0.75,ket_size=10,label_size=14,figsize=(10,10),ylim=None, deltaE_label = 3000,alt_label=False):
         if label_q is None:
             label_q = self.q_str
         if 'M' not in label_q:
@@ -604,7 +653,7 @@ class MoleculeLevels(object):
                 if q=='M':
                     M_bounds.append([(max_q_val-width/2),(max_q_val+width/2)])
         M_bounds = np.array(M_bounds).T
-        plt.hlines(evals,*M_bounds,colors='b')
+        plt.hlines(evals,*M_bounds,colors='b',linewidth=thickness)
         plt.ylim(ylim)
     #     left,right = plt.xlim()
     #     plt.xlim(left-1,right+2)
@@ -622,8 +671,21 @@ class MoleculeLevels(object):
                         label_str = r'$|$'
                         if parity:
                             label_str+='${}$,'.format({1: '+', -1:'-'}[parities[i]])
+                            if pretty:
+                                label_str+=' '
                         for q in label_q_no_M:
-                            label_str+=r'${}$={},'.format(q,primary_q[q][i])
+                            _q = {True: '\u039B', False: q}[q=='L']
+                            _q = {True: '\u03A9', False: q}[q=='Omega']
+                            _q = {True: '\u03A3', False: q}[q=='Sigma']
+                            if pretty:
+                                if primary_q[q][i] % 1 == 0:
+                                    label_str+=r'${}$={}, '.format(_q,int(primary_q[q][i]))
+                                else:
+                                    label_str+=r'${}$={}, '.format(_q,str(Fraction(primary_q[q][i])))
+                            else:
+                                label_str+=r'${}$={},'.format(_q,primary_q[q][i])
+                        if pretty:
+                            label_str = label_str[:-1]
                         label_str = label_str[:-1]+r'$\rangle$'
                         if self.M_values=='custom':
                             loc = primary_q['M'][i]
@@ -631,7 +693,7 @@ class MoleculeLevels(object):
                             loc = abs(primary_q['M'][i] % 1)
                         else:
                             loc = 0
-                        plt.annotate(label_str,(loc,energy-sign*off*scale),ha='center',fontsize=10)
+                        plt.annotate(label_str,(loc,energy-sign*off*scale),ha='center',fontsize=ket_size)
                         labeled_energies.append(energy)
                         if alt_label: # alternate labels
                             sign*=-1
@@ -639,10 +701,12 @@ class MoleculeLevels(object):
                 prev_pattern = current_pattern
             bot,top = plt.ylim()
             plt.ylim(bot-0.03*scale,top+0.03*scale)
-        plt.xlabel(r'$M_F$',fontsize=14)
-        plt.ylabel('Energy (MHz)',fontsize=14)
+        plt.xlabel(r'$M_F$',fontsize=label_size)
+        plt.ylabel('Energy (MHz)',fontsize=label_size)
+        plt.xticks(fontsize=label_size-2)
+        plt.yticks(fontsize=label_size-2)
 
-        return
+        return fig
 
     def display_PTV(self,Ez,Bz,EDM_or_MQM,idx = None,width=0.75,figsize=(9,9),ylim=None,round=None):
         if '174' in self.iso_state or '40' in self.iso_state:
@@ -702,10 +766,17 @@ class MoleculeLevels(object):
     def display_parity(self,Ez,Bz,round = 2,**kwargs):
         return self.display_property(Ez,Bz,self.parity_EB(Ez,Bz,round=round),**kwargs)
 
+    def display_g_D_eff(self,Ez,Bz,Estep=1e-5,Bstep=1e-5,**kwargs):
+        combined_property = np.array(list(zip(self.g_eff_EB(Ez,Bz,step=Bstep), self.D_eff_EB(Ez,Bz,step=Estep))))
+        return self.display_property(Ez,Bz,combined_property,**kwargs)
+
+    def display_D_eff(self,Ez,Bz,step=1e-5,**kwargs):
+        return self.display_property(Ez,Bz,self.D_eff_EB(Ez,Bz,step=step),**kwargs)
+
     def display_g_eff(self,Ez,Bz,step=1e-5,**kwargs):
         return self.display_property(Ez,Bz,self.g_eff_EB(Ez,Bz,step=step),**kwargs)
 
-    def display_property(self,Ez,Bz,properties,idx = None,width=0.75,figsize=(9,9),ylim=None,round=None):
+    def display_property(self,Ez,Bz,properties,idx = None,width=0.75,figsize=(9,9),ylim=None,round=None,offset=0.03):
         if Ez==self.E0 and Bz==self.B0:
             evals,evecs = [self.evals0,self.evecs0]
         else:
@@ -729,12 +800,16 @@ class MoleculeLevels(object):
             M_bounds.append([(M-width/2),(M+width/2)])
         M_bounds = np.array(M_bounds).T
         plt.hlines(evals,*M_bounds)
-        off = 0.03
+        off = offset
         for i,prop in enumerate(properties):
             if (ylim[0]+scale*off < evals[i] < ylim[1]-scale*off):
                 if round is not None:
                     prop = np.round(prop,round)
-                plt.annotate(prop,(M_vals[i],evals[i]-off*scale),ha='center',fontsize=12)
+                if type(prop) == np.ndarray or type(prop) == list:
+                    prop_str = str(list(prop)).strip('[]')
+                    plt.annotate(prop_str,(M_vals[i],evals[i]-off*scale),ha='center',fontsize=12)
+                else:
+                    plt.annotate(prop,(M_vals[i],evals[i]-off*scale),ha='center',fontsize=12)
         bot,top = plt.ylim()
         plt.ylim(bot-0.3,top+0.3)
         plt.xlabel(r'$M_F$',fontsize=14)
@@ -753,8 +828,11 @@ class MoleculeLevels(object):
         output = self.alt_q_numbers[new_case]
         if ('a' in new_case and 'bBJ' in current_case) or ('bBJ' in new_case and 'a' in current_case):
             basis_matrix = self.library.basis_changers['a_bBJ'](inputt,output)
-        elif ('decoupled' in new_case and 'b' in current_case):
+        elif ('decoupled' in new_case and 'bBJ' in current_case):
             basis_matrix = self.library.basis_changers['b_decoupled'](inputt,output)
+        elif ('decoupled' in new_case and 'bBS' in current_case):
+            intermediate = self.alt_q_numbers['bBJ']
+            basis_matrix = self.library.basis_changers['b_decoupled'](intermediate,output)@self.library.basis_changers['bBS_bBJ'](inputt,intermediate)
         elif ('decoupled' in new_case and 'a' in current_case and 'J' not in new_case):
             intermediate = self.alt_q_numbers['bBJ']
             basis_matrix = self.library.basis_changers['b_decoupled'](intermediate,output)@self.library.basis_changers['a_bBJ'](inputt,intermediate)
@@ -895,7 +973,7 @@ class MoleculeLevels(object):
         if '174' in self.iso_state or '40' in self.iso_state:
             self.PTV_type = 'EDM'
             H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers)
-        elif '173' in self.iso_state or '171' in self.iso_state:
+        elif '173' or '171' in self.iso_state:
             self.PTV_type = EDM_or_MQM
             H_PTV = self.library.PTV_builders[self.iso_state](self.q_numbers, EDM_or_MQM)
         if trap_shifts:
@@ -937,7 +1015,7 @@ class MoleculeLevels(object):
                         shifts_EB[:,j,i] = np.round(np.diagonal(evecs_E[j]@H_trap@evecs_E[j].T),self.round)
         if reverse:
             evals_EB = np.flip(evals_EB,(1,2))
-            order = np.argsort(evals_EB[:,0,0])
+            order = np.argsort(evals_EB[:,-1,-1])
             print(order)
             evals_EB = evals_EB[order,:,:]
         self.evals_EB = evals_EB
@@ -1008,12 +1086,12 @@ def XA_branching_ratios(X,A,Ez,Bz,Normalize=False): # must be in case a
 
 
 #Here, ground = initial, excited = final
-def Calculate_TDMs(p,Ground, Excited, Ez, Bz, q=[-1,0,1],Normalize=False):
+def Calculate_TDMs(p,Ground, Excited, Ez, Bz, q=[-1,0,1],Normalize=False,chop=None):
     if type(q)!=list:
         q = [q]
-    G_evals,G_evecs = Ground.eigensystem(Ez,Bz)
+    G_evals,G_evecs = Ground.eigensystem(Ez,Bz,chop=chop)
     G_qn = Ground.q_numbers
-    E_evals,E_evecs = Excited.eigensystem(Ez,Bz)
+    E_evals,E_evecs = Excited.eigensystem(Ez,Bz,chop=chop)
     E_qn = Excited.q_numbers
     if 'a' not in Ground.hunds_case:
         G_evecs = Ground.convert_evecs('aBJ',Normalize=Normalize)

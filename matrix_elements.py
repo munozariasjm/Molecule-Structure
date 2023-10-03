@@ -1,6 +1,7 @@
-import sympy as sy
 import numpy as np
-from sympy.physics.wigner import wigner_3j,wigner_6j,wigner_9j
+from sympy.physics.wigner import wigner_3j as wigner_3j_sy
+from sympy.physics.wigner import wigner_6j as wigner_6j_sy
+from sympy.physics.wigner import wigner_9j as wigner_9j_sy
 
 ########## Matrix Elements for YbOH ##############
 
@@ -13,6 +14,12 @@ molecule gets a separate dictionary. Dictionaries are at the end of the file.
 '''
 
 
+def wigner_3j(*args):
+    return float(wigner_3j_sy(*args))
+def wigner_6j(*args):
+    return float(wigner_6j_sy(*args))
+def wigner_9j(*args):
+    return float(wigner_9j_sy(*args))
 
 def kronecker(a,b):         # Kronecker delta function
     if a==b:
@@ -57,7 +64,7 @@ def recouple_J_even(dcpl_a,dcpl_b,S=1/2,I=1/2): #This function "recouples" M_N a
     if not kronecker(dcpl_a['M_F'],dcpl_b['M_F'])*kronecker(dcpl_a['K'],dcpl_b['K'])*kronecker(dcpl_a['N'],dcpl_b['N']):
         return 0
     else:
-        return (-1)^(S-dcpl_b['N']+dcpl_b['M_F'])*np.sqrt(2*dcpl_a['J']+1)*wigner_3j(dcpl_b['N'],S,dcpl_a['J'],dcpl_b['M_N'],dcpl_b['M_S'],-dcpl_a['M_J'])
+        return (-1)**(S-dcpl_b['N']+dcpl_b['M_F'])*np.sqrt(2*dcpl_a['J']+1)*wigner_3j(dcpl_b['N'],S,dcpl_a['J'],dcpl_b['M_N'],dcpl_b['M_S'],-dcpl_a['M_J'])
 
 def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2):
     if 'F1' in bBJ.keys():
@@ -73,6 +80,16 @@ def bBS_2_bBJ_matrix(bBS, bBJ, S=1/2, I = 5/2):
     J = bBJ['J']
     return (-1)**(I+S+F+N)*np.sqrt((2*G+1)*(2*J+1))*wigner_6j(I,S,G,N,F,J)
 
+def unpack(bra,ket):
+    return
+
+########## Vibronic bBJ ###########
+
+def Parity_v_bBJ(l0,L0,K0,N0,J0,F0,M0,l1,L1,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(l0,-l1)*kronecker(L0,-L1)*kronecker(K0,-K1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
+        return 0
+    else:
+        return (-1)**(N0-abs(K0))
 
 ########## Case bBJ ##############
 
@@ -80,7 +97,7 @@ def Parity_l_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,-K1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
         return 0
     else:
-        return (-1)**(N0+abs(K0))
+        return (-1)**(N0-abs(K0))
 
 def Parity_L_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,-K1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
@@ -92,22 +109,24 @@ def Rot_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,K1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
         return 0
     else:
-        return N0*(N0+1)-K0**2
+        return ((-1)**(-2*M0+2*I+2*S+2*N0))*\
+            (N0*(N0+1)-K0**2)
 
 def SR_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,K1)*kronecker(J0,J1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1):
         return 0
     else:
-        return (-1)**(N0+J0+S)*np.sqrt(S*(S+1)*(2*S+1)*N0*(N0+1)*(2*N0+1))*\
-            wigner_6j(S,N0,J0,N0,S,1)
+        return (-1)**(-2*M0+2*I+N1+3*J0+S)*np.sqrt(S*(S+1)*(2*S+1)*N0*(N0+1)*(2*N0+1))*\
+            wigner_6j(N0,S,J0,S,N1,1)
 
 def IS_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,K1)*kronecker(N0,N1)*kronecker(F0,F1)*kronecker(M0,M1):
         return 0
     else:
-        return (-1)**(J1 + F0 + I + J0 + N0 + S + 1)*\
-            np.sqrt((2*J1+1)*(2*J0+1)*S*(S+1)*(2*S+1)*I*(I+1)*(2*I+1))*\
-            wigner_6j(I,J1,F0,J0,I,1)*wigner_6j(J0,S,N0,S,J1,1)
+        return (-1)**(2*F0-2*M0)*\
+            (-1)**(J1 + F0 + I)*wigner_6j(J1,I,F0,I,J0,1)*\
+            (-1)**(J0 + N0 + S + 1)*np.sqrt((2*J1+1)*(2*J0+1))*wigner_6j(S,J1,N0,J0,S,1)*\
+            np.sqrt(S*(S+1)*(2*S+1)*I*(I+1)*(2*I+1))
 
 def T2IS_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(K0,K1):
@@ -117,6 +136,13 @@ def T2IS_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
             np.sqrt((2*J0+1)*(2*J1+1)*3*(2*S+1)*(S+1)*S)*wigner_6j(I,J1,F0,J0,I,1)*\
             wigner_9j(S,N1,J1,1,2,1,S,N0,J0)*np.sqrt((2*N0+1)*(2*N1+1))*wigner_3j(N0,2,N1,-K0,0,K1)
 
+def T2ISq2_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(F0,F1)*kronecker(M0,M1):
+        return 0
+    else:
+        return -np.sqrt(5/3)*(-1)**(3*F0-2*M0+I+J0)*np.sqrt((2*I+1)*(I+1)*I)*\
+            np.sqrt((2*J0+1)*(2*J1+1)*3*(2*S+1)*(S+1)*S)*wigner_6j(I,J1,F0,J0,I,1)*\
+            wigner_9j(S,N1,J1,1,2,1,S,N0,J0)*np.sqrt((2*N0+1)*(2*N1+1))*sum([(-1)**(N0-K0)*wigner_3j(N0,2,N1,-K0,q,K1) for q in [-2,2]])
 
 def Iz_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1):
@@ -130,52 +156,87 @@ def Sz_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1):
         return 0
     else:
-        return (-1)**(N1+N0+S+J0-K0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
-            wigner_6j(N1,S,J0,S,N0,1)*wigner_3j(N0,1,N1,-K0,0,K1)
+        return (-1)**(-2*M0+2*I+3*J0+N1+S+N0-K0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
+            wigner_6j(N0,S,J0,S,N1,1)*wigner_3j(N0,1,N1,-K0,0,K1)
 
 def NzSz_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(K0,K1):
         return 0
     else:
-        return K0*(-1)**(N1+N0+S+J0-K0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
-            wigner_6j(N1,S,J0,S,N0,1)*wigner_3j(N0,1,N1,-K0,0,K1)
+        return K0*(-1)**(-2*M0+2*I+3*J0+N1+S+N0-K0)*np.sqrt((2*N0+1)*(2*N1+1)*S*(S+1)*(2*S+1))*\
+            wigner_6j(N0,S,J0,S,N1,1)*wigner_3j(N0,1,N1,-K0,0,K1)
 
 def ZeemanZ_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(K0,K1)*kronecker(M0,M1)*kronecker(N0,N1):
         return 0
     else:
-        return (-1)**(F0-M0+F1+2*J0+I+N0+S)*np.sqrt((2*F0+1)*(2*F1+1)*(2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
-            wigner_6j(F0,J0,I,J1,F1,1)*wigner_6j(J0,S,N0,S,J1,1)*wigner_3j(F0,1,F1,-M0,0,M1)
+        return (-1)**(F0-M0+F1+J0+I+J0-N0*-1+S)*np.sqrt((2*F0+1)*(2*F1+1)*(2*J0+1)*(2*J1+1)*S*(S+1)*(2*S+1))*\
+            wigner_6j(J1,F1,I,F0,J0,1)*wigner_6j(S,J1,N0,J0,S,1)*wigner_3j(F0,1,F1,-M0,0,M1)
+
+def ZeemanIZ_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(K0,K1)*kronecker(M0,M1)*kronecker(J0,J1):
+        return 0
+    else:
+        return (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,0,M1)*(-1)**(F0+J0+1+I)*np.sqrt((2*F0+1)*(2*F1+1))*\
+        wigner_6j(I,F1,J0,F0,I,1)*np.sqrt(I*(I+1)*(2*I+1))
+
+def ZeemanLZ_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(K0,K1)*kronecker(M0,M1):
+        return 0
+    else:
+        return (-1)**(F0-M0)*wigner_3j(F0, 1, F1, -M0, 0, M1)*np.sqrt((2*F0+1)*(2*F1+1))*(-1)**(F1+J0+I+1)*\
+            wigner_6j(J1,F1,I,F0,J0,1)*(-1)**(J1+N0+S+1)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_6j(N1,J1,S,J0,N0,1)*\
+            (-1)**(N0-K0)*np.sqrt((2*N1+1)*(2*N0+1))*wigner_3j(N0,1,N1,-K0,0,K1)
+
+def ZeemanX_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(K0,K1)*kronecker(abs(M0-M1),1)*kronecker(N0,N1):
+        return 0
+    else:
+        return (1/np.sqrt(2))*(-1)**(F0-M0+F1+J0+I+J0-N0*-1+S)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+            np.sqrt((2*J1+1)*(2*J0+1))*wigner_6j(S,J1,N0,J0,S,1)*np.sqrt(S*(S+1)*(2*S+1))*\
+            sum([(-1)**(p/2+1/2)*wigner_3j(F0,1,F1,-M0,p,M1) for p in [-1,1]])
 
 #def ZeemanPlus_bBJ():
 
 #def ZeemanMinus_bBJ():
 
+def T_reversal_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(F0,F1)*kronecker(J0,J1)*kronecker(N0,N1)*kronecker(M0,-M1)*kronecker(K0,-K1):
+        return 0
+    else:
+        return (-1)**(F0-M0+K0)
+
+def T_reversal_dcpl(K0,N0,M_N0,M_S0,M_I0,M_F0,K1,N1,M_N1,M_S1,M_I1,M_F1,S=1/2,I=1/2):
+    if not kronecker(N0,N1)*kronecker(M_F0,-M_F1)*kronecker(M_N0,-M_N1)*kronecker(M_S0,-M_S1)*kronecker(M_I0,-M_I1)*kronecker(K0,-K1):
+        return 0
+    else:
+        return (-1)**(M_N0-K0)*(-1)**(S-M_S0)*(-1)**(I-M_I0)
+
 
 def StarkZ_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(M0,M1):
+    if not kronecker(M0,M1)*kronecker(K0,K1):
         return 0
     else:
-        return (-1)**(F0-M0+J0+I+2+F1+S+J1-K0)*np.sqrt((2*F0+1)*(2*F1+1)*(2*J0+1)*(2*J1+1)*(2*N0+1)*(2*N1+1))*\
+        return (-1)**(F0-M0+J0+I+F1+1+N0+S+J1+1+N0-K0)*np.sqrt((2*F0+1)*(2*F1+1)*(2*J0+1)*(2*J1+1)*(2*N0+1)*(2*N1+1))*\
             wigner_3j(F0,1,F1,-M0,0,M1)*wigner_6j(J1,F1,I,F0,J0,1)*wigner_6j(N1,J1,S,J0,N0,1)*wigner_3j(N0,1,N1,-K0,0,K1)
 
+#Check sign on -np.sqrt
 def p_lD_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(M0,M1)*kronecker(F0,F1)*kronecker(J0,J1)*(not kronecker(K0,K1)):
+    if not kronecker(M0,M1)*kronecker(F0,F1)*kronecker(J0,J1)*kronecker(N0,N1)*(not kronecker(K0,K1)):
         return 0
     else:
-        return sum([(-1)**(-2*M0+2*I+3*J0+S+N0)*-np.sqrt(10/6)*wigner_6j(S,N0,J0,N1,S,1)*np.sqrt(S*(S+1)*(2*S+1))*\
+        return sum([(-1)**(-2*M0+2*I+3*J0+N1+S)*-np.sqrt(10/6)*wigner_6j(N0,S,J0,S,N1,1)*np.sqrt(S*(S+1)*(2*S+1))*\
             np.sqrt(3)*(-1)**(1+N0+N1)*wigner_6j(2,1,1,N1,N0,N0)*np.sqrt(N0*(N0+1)*(2*N0+1))*\
             (-1)**(N0-K0)*wigner_3j(N0,2,N1,-K0,2*q,K1)*np.sqrt((2*N0+1)*(2*N1+1))*kronecker(K0,K1+2*q) for q in [-1,1]])
 
 
 def q_lD_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(M0,M1)*kronecker(F0,F1)*kronecker(J0,J1)*(not kronecker(K0,K1)):
+    if not kronecker(M0,M1)*kronecker(F0,F1)*kronecker(J0,J1)*kronecker(N0,N1)*(not kronecker(K0,K1)):
         return 0
     else:
-        return sum([(-1)**(-2*M0+2*I+2*J0)*np.sqrt((2*J1+1))*(-1)**(S+J1+N1)*wigner_6j(N1,J1,S,J0,N0,0)*\
-            np.sqrt(5)*(-1)**(N0+N1)*wigner_6j(2,2,0,N1,N0,N0)*(-1)**(N0+K0)*wigner_3j(N0,2,N1,-K0,2*q,K1)*\
-            1/(2*np.sqrt(6))*np.sqrt((2*N0-1)*(2*N0)*(2*N0+1)*(2*N0+2)*(2*N0+3)*(2*N0+1)*(2*N1+1))*kronecker(K0,K1+2*q) for q in [-1,1]]) #there is ambiguity over the inclusion of extra sqrt(2J0+1)
-
+        return sum([(-1)**(-2*M0+2*I+2*J0)*np.sqrt((2*J1+1))*(-1)**(S+J1+N0)*wigner_6j(N1,J1,S,J0,N0,0)*\
+            np.sqrt(5)*(-1)**(N0+N1)*wigner_6j(2,2,0,N1,N0,N0)*(-1)**(N0-K0)*wigner_3j(N0,2,N1,-K0,2*q,K1)*\
+            1/(2*np.sqrt(6))*np.sqrt((2*N0-1)*(2*N0)*(2*N0+1)*(2*N0+2)*(2*N0+3))*np.sqrt((2*N0+1)*(2*N1+1))*kronecker(K0,K1+2*q) for q in [-1,1]]) #there is ambiguity over the inclusion of extra sqrt(2J0+1)
 
 def lD_bBJ(K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2): #effective term
     if not kronecker(N0,N1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(F0,F1)*(not kronecker(K0,K1)):
@@ -230,11 +291,12 @@ def T20p_alphaXXYY_bBJ(p,K0,N0,J0,F0,M0,K1,N1,J1,F1,M1,S=1/2,I=1/2):
 
 ########## Case bBS ##############
 
+#check
 def Rot_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(K0,K1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(G0,G1)*kronecker(N0,N1):
         return 0
     else:
-        return (-1)**(-2*M0+2*iH+2*2*G0)*N0*(N0+1)-K0**2
+        return (-1)**(-2*M0+2*iH+2*G0)*N0*(N0+1)-K0**2
 
 def SR_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(K0,K1)*kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(N0,N1):
@@ -257,6 +319,7 @@ def ISM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
         return (-1)**(-2*M0+2*iH+2*N0+2*G0+I+S+G0)*np.sqrt(S*(S+1)*(2*S+1)*I*(I+1)*(2*I+1))*\
             wigner_6j(I,S,G0,S,I,1)
 
+#check. Yuiki had N0 and G1 swapped in exponent
 def T2ISM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(F0,F1)*kronecker(F10, F11)*kronecker(M0,M1)*kronecker(K0,K1):
         return 0
@@ -265,6 +328,7 @@ def T2ISM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
             np.sqrt((2*N0+1)*(2*N1+1)*5*(2*G0+1)*(2*G1+1)*I*(I+1)*(2*I+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(N1,G1,F10,G0,N0,2)*wigner_3j(N0,2,N1,-K0,0,K1)
 
+#check phase factor
 def T2QM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if abs(I)<1:
         return 0
@@ -283,11 +347,12 @@ def ISH_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
         np.sqrt(iH*(iH+1)*(2*iH+1)*(2*F10+1)*(2*F11+1)*(2*G0+1)*(2*G1+1)*S*(S+1)*(2*S+1))*\
         wigner_6j(iH,F11,F0,F10,iH,1)*wigner_6j(G1,F11,N0,F10,G0,1)*wigner_6j(S,G1,I,G0,S,1)
 
+#check. Yuiki has G' and F1 swapped with primes
 def T2ISH_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(F0,F1)*kronecker(M0,M1)*kronecker(K0,K1):
         return 0
     else:
-        retu6yhzrn (-1)**(3*F0-2*M0+iH+F10+N0-K0+G1+S+I+1)*\
+        return (-1)**(3*F0-2*M0+iH+F10+N0-K0+G1+S+I+1)*\
             np.sqrt(iH*(iH+1)*(2*iH+1)*(2*F10+1)*(2*F11+1)*3*(2*G0+1)*(2*G1+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(iH,F11,F0,F10,iH,1)*wigner_9j(F10,F11,1,N0,N1,2,G0,G1,1)*\
             wigner_3j(N0,2,N1,-K0,0,K1)*wigner_6j(S,G1,I,G0,S,1)
@@ -300,6 +365,7 @@ def StarkZ_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
             np.sqrt((2*F0+1)*(2*F1+1)*(2*F10+1)*(2*F11+1)*(2*N0+1)*(2*N1+1))*\
             wigner_6j(F11,F1,iH,F0,F10,1)*wigner_6j(N1,F11,G0,F10,N0,1)*wigner_3j(N0,1,N1,-K0,0,K1)
 
+#check exponential phase
 def ZeemanZ_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(N0,N1)*kronecker(M0,M1)*kronecker(K0,K1):
         return 0
@@ -307,6 +373,7 @@ def ZeemanZ_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
         return (-1)**(F0-M0+F1+F10+iH+1+F11+N0+G0+1+G0+I+S+1)*wigner_3j(F0,1,F1,-M0,0,M1)*\
             np.sqrt((2*F0+1)*(2*F1+1)*(2*F10+1)*(2*F11+1)*(2*G0+1)*(2*G1+1)*S*(S+1)*(2*S+1))*\
             wigner_6j(F11,F1,iH,F0,F10,1)*wigner_6j(G1,F11,N0,F10,G0,1)*wigner_6j(S,G1,I,G0,S,1)
+
 
 def lD_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
     if not kronecker(N0,N1)*kronecker(M0,M1)*kronecker(G0,G1)*kronecker(F10,F11)*kronecker(F0,F1)*(not kronecker(K0,K1)):
@@ -345,7 +412,8 @@ def MQM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
         return (-1)**(-2*M0+2*iH+2*F10+N1+G0+F10)*wigner_6j(N1,G1,F10,G0,N0,1)*\
             (-1)**(N0-K0)*wigner_3j(N0,1,N1,-K0,0,K1)*np.sqrt((2*N0+1)*(2*N1+1))*\
             np.sqrt((2*G0+1)*(2*G1+1)*3)*wigner_9j(G0,G1,1,I,I,2,S,S,1)*\
-            np.sqrt((2*S+1)*(S+1)*S)*I*(2*I-1)/np.sqrt(6)/wigner_3j(I,2,I,-I,0,I)
+            np.sqrt((2*S+1)*(S+1)*S)*1/(2*np.sqrt(6))*np.sqrt((2*I-1)*(2*I)*(2*I+1)*(2*I+2)*(2*I+3))
+            # *I*(2*I-1)/np.sqrt(6)/wigner_3j(I,2,I,-I,0,I)
 #Using Sz(3Iz-I2) format
 
 
@@ -360,7 +428,13 @@ def EDM_bBS(K0,N0,G0,F10,F0,M0,K1,N1,G1,F11,F1,M1,S=1/2,I=5/2,iH=1/2):
 
 
 
+######### Vibronic aBJ ##############
 
+def Parity_v_aBJ(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(l0,-l1)*kronecker(L0,-L1)*kronecker(K0,-K1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(Sigma0,-Sigma1)*kronecker(Omega0,Omega1)**kronecker(P0,-P1):
+        return 0
+    else:
+        return (-1)**(J0-S+abs(K0))
 
 
 ########## 174YbOH Case aBJ ##############
@@ -478,20 +552,73 @@ def TDM_p_even_aBJ(p,q,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(Sigma0,Sigma1):
         return 0
     else:
-        TDM_p = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
-            (-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in q])
+        TDM_p =(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+             sum([(-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in q])
         return TDM_p
 
-def TDM_p_even_forbidden_aBJ(p,q,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
-    if kronecker(Sigma0,Sigma1) and 0 in q:
-        TDM_p = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
-            (-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [0]])
-    elif (not kronecker(Sigma0,Sigma1)) and (1 in q or -1 in q):
-        TDM_p = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
-            (-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [1,-1]])
+def TDM_p_uA010_aBJ(p,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,-Sigma1)*kronecker(K0,K1):
+        return 0
     else:
-        TDM_p = 0
-    return TDM_p
+        TDM_p =(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+             sum([(-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [1,-1]])
+        if P0<0:
+            TDM_p*=-1
+        return TDM_p
+
+def TDM_p_kA010_aBJ(p,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,-Sigma1)*kronecker(K0,-K1):
+        return 0
+    else:
+        TDM_p =(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+             sum([(-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [1,-1]])
+        if P0<0:
+            TDM_p*=-1
+        return TDM_p
+
+def TDM_p_B010_aBJ(p,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,Sigma1)*kronecker(K0,K1):
+        return 0
+    else:
+        TDM_p =(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+             sum([(-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [0]])
+        if P0<0:
+            TDM_p*=-1
+        return TDM_p
+
+def TDM_p_vibronic_aBJ(p,l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,Sigma1)*kronecker(l0,l1):
+        return 0
+    else:
+        delta_L = L0-L1
+        TDM_p = (-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+            sum([np.sqrt((2*J0+1)*(2*J1+1))*(-1)**(J0-P0)*wigner_3j(J0,1,J1,-P0,_q,P1)*kronecker(delta_L,_q) for _q in [-1,0,1]])
+        return TDM_p
+
+def TransitionDipole_aBJ_vibronic_noM(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1,S=1/2,I=1/2):
+    if not kronecker(Sigma0,Sigma1)*kronecker(l0,l1):
+        return 0
+    elif not (kronecker(F0,F1) or kronecker(F0+1,F1) or kronecker(F0-1,F1)):
+        return 0
+    else:
+        delta_L = L1-L0
+        TDM_total = 1/np.sqrt((2*F1+1))*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+            np.sqrt((2*J0+1)*(2*J1+1))*sum([(-1)**(J0-P0)*wigner_3j(J0,1,J1,-P0,_q,P1)*kronecker(L1-L0,q) for _q in [-1,0,1]])
+        return TDM_total
+
+def TransitionDipole_even_aBJ_vibronic(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1,S=1/2,I=1/2):
+    return sum([(-1)**p*TDM_p_vibronic_aBJ(p,l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1,S=S,I=I) for p in [-1,0,1]])
+
+# def TDM_p_even_forbidden_aBJ(p,q,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
+#     if kronecker(Sigma0,Sigma1) and 0 in q:
+#         TDM_p = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+#             (-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [0]])
+#     elif (not kronecker(Sigma0,Sigma1)) and (1 in q or -1 in q):
+#         TDM_p = sum([(-1)**(F0-M0)*wigner_3j(F0,1,F1,-M0,p,M1)*(-1)**(F1+J0+I+1)*np.sqrt((2*F0+1)*(2*F1+1))*wigner_6j(J1,F1,I,F0,J0,1)*\
+#             (-1)**(J0-P0)*np.sqrt((2*J0+1)*(2*J1+1))*wigner_3j(J0,1,J1,-P0,_q,P1) for _q in [1,-1]])
+#     else:
+#         TDM_p = 0
+#     return TDM_p
 
 def TransitionDipole_even_aBJ(K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
     if not kronecker(Sigma0,Sigma1):
@@ -521,10 +648,45 @@ def TransitionDipole_even_aBJ_forbidden(scale, K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P
         # TDM_total = TDM_plus + TDM_zero + TDM_minus
     return TDM_total
 
-def HRTSO_A000(coeffs,K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):
-    if not kronecker(P0,P1):
+def HRTSO_A000_B010(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1):
+    if not kronecker(P0,P1)*kronecker(l0,L1)*kronecker(l1,L0)*kronecker(Sigma0,Sigma1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(F0,F1)*kronecker(K0,K1):
         return 0
     else:
+        if P0>0:
+            return 1
+        elif P0<0:
+            return -1
+
+
+def HRTSO_A000_uA010(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1):
+    if not kronecker(P0,P1)*kronecker(Sigma0,-Sigma1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(F0,F1)*kronecker(L0,-L1):
+        return 0
+    else:
+        if P0>0:
+            return 1
+        elif P0<0:
+            return -1
+
+def HRTSO_A000_kA010(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,l1,L1,K1,Sigma1,Omega1,P1,J1,F1,M1):
+    if not kronecker(P0,P1)*kronecker(Sigma0,-Sigma1)*kronecker(M0,M1)*kronecker(J0,J1)*kronecker(F0,F1)*kronecker(L0,L1):
+        return 0
+    else:
+        if P0>0:
+            return 1
+        elif P0<0:
+            return -1
+
+def convert_X010_vibronic(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1):
+    if not kronecker(P0,P1)*kronecker(Sigma0,Sigma1)*kronecker(K0,K1)*kronecker(J0,J1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(l0,K1):
+        return 0
+    else:
+        return 1
+
+def convert_A000_vibronic(l0,L0,K0,Sigma0,Omega0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1):
+    if not kronecker(P0,P1)*kronecker(Sigma0,Sigma1)*kronecker(K0,K1)*kronecker(J0,J1)*kronecker(F0,F1)*kronecker(M0,M1)*kronecker(L0,K1):
+        return 0
+    else:
+        return 1
 
 
 def TransitionDipole_even_aBJ_noM(K0,Sigma0,P0,J0,F0,M0,K1,Sigma1,P1,J1,F1,M1,S=1/2,I=1/2):

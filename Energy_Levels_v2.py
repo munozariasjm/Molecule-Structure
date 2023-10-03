@@ -24,7 +24,7 @@ class QState(objtect):
         self.string = self.make_string()
         self.latex = self.make_latex()
 
-        
+
 
 class MoleculeLevels(object):
 
@@ -589,8 +589,11 @@ class MoleculeLevels(object):
         output = self.alt_q_numbers[new_case]
         if ('a' in new_case and 'bBJ' in current_case) or ('bBJ' in new_case and 'a' in current_case):
             basis_matrix = self.library.basis_changers['a_bBJ'](inputt,output)
-        elif ('decoupled' in new_case and 'b' in current_case):
+        elif ('decoupled' in new_case and 'bBJ' in current_case):
             basis_matrix = self.library.basis_changers['b_decoupled'](inputt,output)
+        elif ('decoupled' in new_case and 'bBS' in current_case):
+            intermediate = self.alt_q_numbers['bBJ']
+            basis_matrix = self.library.basis_changers['b_decoupled'](intermediate,output)@self.library.basis_changers['bBS_bBJ'](inputt,intermediate)
         elif ('decoupled' in new_case and 'a' in current_case and 'J' not in new_case):
             intermediate = self.alt_q_numbers['bBJ']
             basis_matrix = self.library.basis_changers['b_decoupled'](intermediate,output)@self.library.basis_changers['a_bBJ'](inputt,intermediate)
