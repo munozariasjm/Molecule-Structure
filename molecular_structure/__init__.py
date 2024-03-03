@@ -14,3 +14,10 @@ from .hamiltonian_builders import (
     build_operator,
     tensor_matrix,
 )
+
+import numpy as np
+import sympy as sy
+import seaborn as sns
+sns.set()
+sns.set_palette('terrain')
+np.set_printoptions(precision=5, suppress=True)
