@@ -229,7 +229,8 @@ def H_even_X(
         #             q_args = {**state_out,**state_in}
         #             elements = {term: element(**q_args)
         # for term, element in matrix_elements.items()}
-        #             H[i,j] = params['Be']*elements['N^2'] + params['Gamma_SR']*elements['N.S'] + \
+        #             H[i,j] = params['Be']*elements['N^2'] +
+        # params['Gamma_SR']*elements['N.S'] + \
         #                 params['b']*elements['I.S'] + \
         #                 bend*params['q_lD']/2*lD_bBJ(*state_out,*state_in)+\
         #                 params['g_S']*params['mu_B']*Bz*elements['ZeemanZ']
@@ -314,11 +315,15 @@ def H_even_A(
         #             state_out = {q+'0':q_numbers[q][i] for q in q_str}
         #             state_in = {q+'1':q_numbers[q][j] for q in q_str}
         #             q_args = {**state_out,**state_in}
-        #             elements = {term: element(**q_args) for term, element in matrix_elements.items()}
+        #             elements = {term: element(**q_args)
+        # for term, element in matrix_elements.items()}
         #             H[i,j] = params['Be']*elements['N^2'] + SO*params['ASO']*elements['SO'] + \
-        #                 (params['bF']-params['c']/3)*elements['I.S'] + params['c']*elements['IzSz']+\
-        #                 params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
-        #                 Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] - params['muE_A']*Ez*elements['StarkZ']+\
+        #                 (params['bF']-params['c']/3)*elements['I.S'] +
+        # params['c']*elements['IzSz']+\
+        #                 params['g_L']*params['mu_B']*Bz*elements['ZeemanLZ']+
+        # params['g_S']*params['mu_B']*Bz*elements['ZeemanSZ'] +\
+        #                 Bz*params['g_lp']*params['mu_B']*elements['ZeemanParityZ'] -
+        # params['muE_A']*Ez*elements['StarkZ']+\
         #                 params['p+2q']*elements['Lambda-Doubling']
         # return H
 
@@ -396,8 +401,8 @@ def H_odd_A(
         Ez, Bz = sy.symbols("E_z B_z")
         size = len(q_numbers[q_str[0]])
         H0 = np.zeros((size, size)).tolist()
-        V_B = np.zeros((size, size)).tolist()
-        V_E = np.zeros((size, size)).tolist()
+        # V_B = np.zeros((size, size)).tolist()
+        # V_E = np.zeros((size, size)).tolist()
         for i in range(size):
             for j in range(size):
                 state_out = {q + "0": q_numbers[q][i] for q in q_str}
@@ -704,11 +709,11 @@ def convert_bbBS(input_qnumbers, output_qnumbers, S=1 / 2, I=5 / 2):
     return basis_matrix
 
 
-def decouple_b(input_qnumbers: dict, output_qnumbers: dict, S: float = 1 / 2, Is=1 / 2):
+def decouple_b(input_qnumbers: dict, output_qnumbers: dict, S: float = 1 / 2, I=1 / 2):
     """
     The function `decouple_b` takes input quantum numbers and output quantum
     numbers, and calculates a basis matrix using the `decouple_b_even` function with
-    specified parameters S and Is.
+    specified parameters S and I.
 
     :param input_qnumbers: The `input_qnumbers` parameter in the `decouple_b`
     function seems to represent a dictionary where the keys are quantum numbers
@@ -721,7 +726,7 @@ def decouple_b(input_qnumbers: dict, output_qnumbers: dict, S: float = 1 / 2, Is
     the system. It is used in the calculation of the basis matrix by passing it to
     the `decouple_b_even` function along with other quantum numbers. In quantum
     mechanics, the spin quantum number represents the intrinsic angular
-    :param Is: The parameter `Is` in the `decouple_b` function seems to represent
+    :param I: The parameter `I` in the `decouple_b` function seems to represent
     the value of the nuclear spin quantum number I. It is used in the calculation of
     the basis matrix within the function
     :return: The function `decouple_b` returns a basis matrix that is calculated
@@ -740,12 +745,12 @@ def decouple_b(input_qnumbers: dict, output_qnumbers: dict, S: float = 1 / 2, Is
             decoupled_qnumbers = {q: output_qnumbers[q][i] for q in output_keys}
             b_qnumbers = {q: input_qnumbers[q][j] for q in input_keys}
             basis_matrix[i, j] = decouple_b_even(
-                decoupled_qnumbers, b_qnumbers, S=S, I=Is
+                decoupled_qnumbers, b_qnumbers, S=S, I=I
             )
     return basis_matrix
 
 
-def recouple_J(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
+def recouple_J(input_qnumbers, output_qnumbers, S=1 / 2, I=1 / 2):
     """
     The function `recouple_J` takes input quantum numbers and output quantum
     numbers, and returns a basis matrix by recoupling the quantum numbers using the
@@ -759,7 +764,7 @@ def recouple_J(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
     spin quantum number. It is typically used in quantum mechanics to describe the
     intrinsic angular momentum of a particle or system. In this context, it seems to
     be related to the spin of the particles being considered in the recou
-    :param Is: The parameter `Is` in the `recouple_J` function represents the
+    :param I: The parameter `I` in the `recouple_J` function represents the
     isospin quantum number. It is used in the calculation of the recoupled angular
     momentum quantum numbers. In the context of quantum mechanics and nuclear
     physics, isospin is a quantum number related to the strong interaction between
@@ -779,12 +784,12 @@ def recouple_J(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
             recoupled_J_qnumbers = {q: output_qnumbers[q][i] for q in output_keys}
             decoupled_qnumbers = {q: input_qnumbers[q][j] for q in input_keys}
             basis_matrix[i, j] = recouple_J_even(
-                recoupled_J_qnumbers, decoupled_qnumbers, S=S, I=Is
+                recoupled_J_qnumbers, decoupled_qnumbers, S=S, I=I
             )
     return basis_matrix
 
 
-def decouple_b_I(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
+def decouple_b_I(input_qnumbers, output_qnumbers, S=1 / 2, I=1 / 2):
     """
     The function `decouple_b_I` takes input and output quantum numbers, calculates a
     basis matrix using the `decouple_b_I_even` function, and returns the matrix.
@@ -797,7 +802,7 @@ def decouple_b_I(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
     and the values are lists of quantum numbers for each key
     :param S: The parameter `S` in the `decouple_b_I` function represents the spin
     of the system, typically denoted as S.
-    :param Is: The parameter `Is` in the `decouple_b_I` function represents the
+    :param I: The parameter `I` in the `decouple_b_I` function represents the
     value of the spin quantum number for the system. In quantum mechanics, the spin
     quantum number is a quantum number that describes the intrinsic angular momentum
     of a particle, such as an electron. It is denoted by the symbol
@@ -815,6 +820,6 @@ def decouple_b_I(input_qnumbers, output_qnumbers, S=1 / 2, Is=1 / 2):
             decoupled_I_qnumbers = {q: output_qnumbers[q][i] for q in output_keys}
             b_qnumbers = {q: input_qnumbers[q][j] for q in input_keys}
             basis_matrix[i, j] = decouple_b_I_even(
-                decoupled_I_qnumbers, b_qnumbers, S=S, I=Is
+                decoupled_I_qnumbers, b_qnumbers, S=S, I=I
             )
     return basis_matrix
