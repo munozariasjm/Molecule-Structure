@@ -6,7 +6,7 @@ Python code to calculate molecular energy levles and shifts.
 
 To install this code we recommend using a brand new conda environment.
 ```
-conda create -n envMolecularStructure python=3.9
+conda create -n envMolecularStructure python=3.11 -y
 conda activate envMolecularStructure
 ```
 
