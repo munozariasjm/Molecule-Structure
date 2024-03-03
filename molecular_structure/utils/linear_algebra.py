@@ -63,11 +63,11 @@ class LA_Tools:
             v = v.numpy()
         evals = np.round(w, round)
         evecs = np.round(v.T, round)
-        # if normalize:
-        #     for i,evec in enumerate(evecs):
-        #         evecs[i]/=evec@evec
-        # if order:
-        #     idx_order = np.argsort(evals)
-        #     evecs =evecs[idx_order,:]
-        #     evals = evals[idx_order]
+        if normalize:
+            for i, evec in enumerate(evecs):
+                evecs[i] /= evec @ evec
+        if order:
+            idx_order = np.argsort(evals)
+            evecs = evecs[idx_order, :]
+            evals = evals[idx_order]
         return evals, evecs

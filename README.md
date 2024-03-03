@@ -36,8 +36,9 @@ X = MoleculeLevels.initialize_state('YbOH','174','X000',
                                     P_values=[1/2], S=1/2, round=6)
 sy.N(X.H_symbolic[:6,:6],2)
 ```
-
+```latex
 $\displaystyle \left[\begin{matrix}-72.0 & 0 & 1.4 B_{z} & 0 & 0 & 0\\0 & 24.0 - 1.4 B_{z} & 0 & 0 & 0 & - 0.66 E_{z}\\1.4 B_{z} & 0 & 24.0 & 0 & 0.66 E_{z} & 0\\0 & 0 & 0 & 1.4 B_{z} + 24.0 & 0 & 0\\0 & 0 & 0.66 E_{z} & 0 & 1.1 \cdot 10^{4} & 0\\0 & - 0.66 E_{z} & 0 & 0 & 0 & 0.47 B_{z} + 1.1 \cdot 10^{4}\end{matrix}\right]$
+```
 
 There are plenty of examples on how to use the code in the `notebooks` folder.
 We recommend you to start with:
