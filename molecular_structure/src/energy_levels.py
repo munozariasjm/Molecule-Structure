@@ -93,7 +93,7 @@ class MoleculeLevels(object):
         }
         return cls(**properties)
 
-    def __init__(self, **properties):
+    def __init__(self, **properties) -> None:
         # Create attributes using properties dict
         import numpy as np
         import seaborn as sns
@@ -114,7 +114,8 @@ class MoleculeLevels(object):
         self.hunds_case = self.library.cases[self.iso_state]
         self.K = self.library.K[self.iso_state]
 
-        # Create quantum number dictionary, contains arrays of angular momenta eigenvalues indexed by basis vector
+        # Create quantum number dictionary, contains arrays of angular
+        # momenta eigenvalues indexed by basis vector
         # Example: {'J':[0,1,1,1], 'M':[0,-1,0,1]}
         self.q_numbers = self.library.q_number_builders[self.iso_state](
             self.N_range,
@@ -138,7 +139,8 @@ class MoleculeLevels(object):
         }
 
         # Create Hamiltonian.
-        # H_function is a function that takes (E,B) values as an argument, and returns a numpy matrix
+        # H_function is a function that takes (E,B) values as an argument,
+        # and returns a numpy matrix
         # H_symbolic is a symbolic sympy matrix of the Hamiltonian
         if self.trap:
             self.H_function, self.H_symbolic = self.library.H_builders[self.iso_state](
@@ -292,7 +294,7 @@ class MoleculeLevels(object):
         initial_evecs=None,
         **kwargs
     ):
-        if self.trap == False:
+        if not self.trap:
             return None
         if I_trap is not None:
             self.I_trap = I_trap
@@ -305,16 +307,21 @@ class MoleculeLevels(object):
                 for angle_val in angle_array
             ]
         )
-        # results = [self.eigensystem(Ez_val,Bz_val,set_attr=False) for Bz_val in Bz_array]
-        # pool = mp.Pool(mp.cpu_count())
-        # worker = partial(diagonalize,order=True, normalize=False,round=self.round)
-        # results = pool.starmap(worker,[(self.H_function(Ez_val,Bz_val),) for Bz_val in Bz_array.tolist()])
-        # pool.close()
-        # pool.join()
-        # t1 = perf_counter()
-        # evals_B, evecs_B = list(zip(*results))
-        # evals_B = np.array(evals_B)
-        # evecs_B = np.array(evecs_B)
+        """
+        results = [self.eigensystem(Ez_val,Bz_val,set_attr=False) for Bz_val in Bz_array]
+        pool = mp.Pool(mp.cpu_count())
+        worker = partial(diagonalize,order=True, normalize=False,round=self.round)
+        results = pool.starmap(
+            worker,[(self.H_function(Ez_val,Bz_val),)
+            for Bz_val in Bz_array.tolist()]
+        )
+        pool.close()
+        pool.join()
+        t1 = perf_counter()
+        evals_B, evecs_B = list(zip(*results))
+        evals_B = np.array(evals_B)
+        evecs_B = np.array(evecs_B)
+        """
         evals_t, evecs_t = self.la_tool.diagonalize_batch(
             angle_matrices, round=self.round
         )
@@ -376,16 +383,19 @@ class MoleculeLevels(object):
             B_matrices = np.array(
                 [self.H_function(Ez_val, Bz_val) for Bz_val in Bz_array]
             )
+        """
         # results = [self.eigensystem(Ez_val,Bz_val,set_attr=False) for Bz_val in Bz_array]
         # pool = mp.Pool(mp.cpu_count())
         # worker = partial(diagonalize,order=True, normalize=False,round=self.round)
-        # results = pool.starmap(worker,[(self.H_function(Ez_val,Bz_val),) for Bz_val in Bz_array.tolist()])
+        # results = pool.starmap(worker,
+        # [(self.H_function(Ez_val,Bz_val),) for Bz_val in Bz_array.tolist()])
         # pool.close()
         # pool.join()
         # t1 = perf_counter()
         # evals_B, evecs_B = list(zip(*results))
         # evals_B = np.array(evals_B)
         # evecs_B = np.array(evecs_B)
+        """
         evals_B, evecs_B = self.la_tool.diagonalize_batch(B_matrices, round=self.round)
         # t2 = perf_counter()
         if order:
@@ -449,15 +459,18 @@ class MoleculeLevels(object):
             E_matrices = np.array(
                 [self.H_function(Ez_val, Bz_val) for Ez_val in Ez_array]
             )
-        # results = [self.eigensystem(Ez_val,Bz_val,set_attr=False) for Ez_val in Ez_array.tolist()]
-        # pool = mp.Pool(mp.cpu_count())
-        # worker = partial(diagonalize,order=True, normalize=False,round=self.round)
-        # results = pool.starmap(worker,[(self.H_function(Ez_val,Bz_val),) for Ez_val in Ez_array.tolist()])
-        # pool.close()
-        # pool.join()
-        # evals_E, evecs_E = list(zip(*results))
-        # evals_E = np.array(evals_E)
-        # evecs_E = np.array(evecs_E)
+        """
+        results = [self.eigensystem(Ez_val,Bz_val,set_attr=False) for Ez_val in Ez_array.tolist()]
+        pool = mp.Pool(mp.cpu_count())
+        worker = partial(diagonalize,order=True, normalize=False,round=self.round)
+        results = pool.starmap(worker,[(self.H_function(Ez_val,Bz_val),)
+        for Ez_val in Ez_array.tolist()])
+        pool.close()
+        pool.join()
+        evals_E, evecs_E = list(zip(*results))
+        evals_E = np.array(evals_E)
+        evecs_E = np.array(evecs_E)
+        """
         evals_E, evecs_E = self.la_tool.diagonalize_batch(E_matrices, round=self.round)
         if initial_evecs is None:
             evecs_old = evecs_E[0]
@@ -553,7 +566,6 @@ class MoleculeLevels(object):
             return H_trap
 
     def trap_shift_EB(self, I_trap=None, theta_trap=None, Ez=None, Bz=None, step=0.1):
-        recalc = False
         if Ez is None:
             Ez = self.E0
         if Bz is None:
@@ -596,7 +608,7 @@ class MoleculeLevels(object):
                 self.q_numbers, EDM_or_MQM
             )
         self.H_PTV = H_PTV
-        evals, evecs = self.evals0, self.evecs0
+        _, evecs = self.evals0, self.evecs0
         PTV_shift = []
         for evec in evecs:
             E_PTV = evec @ H_PTV @ evec
@@ -956,7 +968,7 @@ class MoleculeLevels(object):
             ylim = (evals[0] - 0.1 * scale, evals[-1] + 0.1 * scale)
         else:
             scale = abs(ylim[1] - ylim[0])
-        fig = plt.figure(figsize=figsize)
+        _ = plt.figure(figsize=figsize)
         plt.ylim(ylim)
         M_bounds = []
         M_vals = []
@@ -1034,7 +1046,7 @@ class MoleculeLevels(object):
             ylim = (evals[0] - 0.1 * scale, evals[-1] + 0.1 * scale)
         else:
             scale = abs(ylim[1] - ylim[0])
-        fig = plt.figure(figsize=figsize)
+        _ = plt.figure(figsize=figsize)
         plt.ylim(ylim)
         M_bounds = []
         M_vals = []
@@ -1049,7 +1061,7 @@ class MoleculeLevels(object):
             if ylim[0] + scale * off < evals[i] < ylim[1] - scale * off:
                 if round is not None:
                     prop = np.round(prop, round)
-                if type(prop) == np.ndarray or type(prop) == list:
+                if isinstance(prop, (int, float)):
                     prop_str = str(list(prop)).strip("[]")
                     plt.annotate(
                         prop_str,
@@ -1154,7 +1166,7 @@ class MoleculeLevels(object):
         frac="",
     ):
         q_numbers = self.q_numbers
-        if label_q == None:
+        if not label_q:
             label_q = self.q_str
         if round is None:
             round = self.round
@@ -1165,30 +1177,30 @@ class MoleculeLevels(object):
                 pass
             elif "decoupled" in basis:
                 q_numbers = self.alt_q_numbers["decoupled"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["decoupled"])
                 evecs = self.convert_evecs("decoupled", evecs=evecs, verbose=False)
             elif "a" in basis:
                 q_numbers = self.alt_q_numbers["aBJ"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["aBJ"])
                 evecs = self.convert_evecs("aBJ", evecs=evecs, verbose=False)
             elif "bBJ" in basis:
                 q_numbers = self.alt_q_numbers["bBJ"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["bBJ"])
                 evecs = self.convert_evecs("bBJ", evecs=evecs, verbose=False)
             elif "recouple" in basis:
                 q_numbers = self.alt_q_numbers["recouple_J"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["recouple_J"])
             elif "decouple_I" in basis:
                 q_numbers = self.alt_q_numbers["decouple_I"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["decouple_I"])
             elif "bBS" in basis:
                 q_numbers = self.alt_q_numbers["bBS"]
-                if label_q == None:
+                if not label_q:
                     label_q = list(self.alt_q_numbers["bBS"])
                 evecs = self.convert_evecs("bBS", evecs=evecs, verbose=False)
         full_label = r""
@@ -1236,7 +1248,7 @@ class MoleculeLevels(object):
         return full_label
 
     def select_q(self, q_dict, evecs=None, parity=None):
-        if evecs == None:
+        if not evecs:
             evecs = self.evecs0
         idx = []
         for i in range(len(evecs)):
@@ -1256,7 +1268,7 @@ class MoleculeLevels(object):
                         match *= False
                     if parity == "-" and self.parities[i] > 0:
                         match *= False
-            if match == True:
+            if match:
                 idx.append(i)
         return np.array(idx)
 
@@ -1278,7 +1290,7 @@ class MoleculeLevels(object):
         self.eigensystem(Ez[0], Bz[0])
         N_evals = len(self.evals0)
         evec_dim = len(self.evecs0[0])
-        if self.trap == False:
+        if not self.trap:
             trap_shifts = False
         N_Bz = len(Bz)
         N_Ez = len(Ez)
@@ -1432,7 +1444,7 @@ def xa_branching_ratios(X, A, Ez, Bz, normalize=False):  # must be in case a
 def calculate_TDMs(
     p, Ground, Excited, Ez, Bz, q=[-1, 0, 1], normalize=False, chop=None
 ):
-    if type(q) != list:
+    if isinstance(q, int):
         q = [q]
     G_evals, G_evecs = Ground.eigensystem(Ez, Bz, chop=chop)
     G_qn = Ground.q_numbers
