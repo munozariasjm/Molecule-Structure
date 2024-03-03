@@ -15,10 +15,16 @@ conda activate envMolecularStructure
 After this just pip install the repo. In your terminal, run:
 
 ```bash
-git clone git...
-pip install Molecule-Structure
+git clone git
+cd Molecule-Structure
+pip install .
 ```
 
+If you want to check that the installation was successful, you can run the tests:
+
+```bash
+python -m unittest python -m unittest Molecule-Structure/tests/basic_test.py
+```
 
 ## Usage
 

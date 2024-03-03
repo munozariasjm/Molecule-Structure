@@ -84,9 +84,16 @@ class MoleculeLevels(object):
         }
         return cls(**properties)
 
-
     def __init__(self, **properties):
         # Create attributes using properties dict
+        import numpy as np
+        import sympy as sy
+        import seaborn as sns
+        from IPython.display import Latex, display
+
+        sns.set()
+        sns.set_palette("terrain")
+        np.set_printoptions(precision=5, suppress=True)
         self.__dict__.update(properties)
         self.engine = properties['engine']
         self.la_tool = LA_Tools(engine=self.engine)

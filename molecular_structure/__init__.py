@@ -16,6 +16,8 @@ from .src import (
 import numpy as np
 import sympy as sy
 import seaborn as sns
+import latex
+from IPython.display import Latex, display
 
 sns.set()
 sns.set_palette("terrain")
